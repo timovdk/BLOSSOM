@@ -116,24 +116,22 @@ class OrganismGroup(core.Agent):
         else:
             self.age+=1
 
-    def compete(self, grid):
-       # print('comp')
-        #xyz_dirs = random.default_rng.choice(OrganismGroup.OFFSETS, size=3)
-        #self.pt = grid.move(self, dpt(self.pt.x + xyz_dirs[0], self.pt.y + xyz_dirs[1], self.pt.z + xyz_dirs[2]))
-        
+    def compete(self, food_opts):
         self.age+=1
 
-    def disperse(self, grid, rate):
+        if food_opts:
+            eat = random.default_rng.choice(food_opts, size=1)[0]
+            return(eat.uid)
+
+    def disperse(self, grid, range):
         # choose two elements from the OFFSET array
         # to select the direction to disperse in the
         # x,y,z dimensions
-        #print('disp')
-        xyz_dirs = random.default_rng.choice(OrganismGroup.OFFSETS, size=3) * rate
+        xyz_dirs = random.default_rng.choice(OrganismGroup.OFFSETS, size=3) * range
         self.pt = grid.move(self, dpt(self.pt.x + xyz_dirs[0], self.pt.y + xyz_dirs[1], self.pt.z + xyz_dirs[2]))
         
         self.age+=1
     
-
 
 organism_group_cache = {}
 
@@ -190,6 +188,16 @@ class Model:
         self.organism_death_age = list(params['organism_group.death_age'].values())
         self.co_occ_network = nx.node_link_graph(json.loads(params['co_occ_network']))
         self.sorted_occ_net = sorted(self.co_occ_network.degree, key=lambda x: x[1], reverse=True)
+        self.trophic_net = nx.node_link_graph(json.loads(params['trophic_network']))
+
+        self.food_dependency = []
+        for x in range(len(self.trophic_net.nodes())):
+            edges = self.trophic_net.in_edges(nbunch=x)
+            food = []
+            if edges:
+                for k in edges:
+                    food.append(k[0])
+            self.food_dependency.append(food)
 
         # create a bounding box equal to the size of the entire global world grid
         box = space.BoundingBox(0, params['world.width'], 0, params['world.height'], 0, params['world.depth'])
@@ -260,12 +268,14 @@ class Model:
         # First loop through all organisms to process check_death and nutrient uptake
         for organism_group in self.context.agents():
             # First determine whether this organism_group survives
-            id = organism_group.check_death(self.organism_death_age[organism_group.type])
-            if id is not None:
-                ogs_to_kill.append(id)
+            uid = organism_group.check_death(self.organism_death_age[organism_group.type])
+            if uid is not None:
+                ogs_to_kill.append(uid)
         
-        for id in ogs_to_kill:
-            self.remove_agent(self.context.agent(id))
+        for uid in ogs_to_kill:
+            agent = self.context.agent(uid)
+            if agent is not None:
+                self.remove_agent(agent)
         
         self.context.synchronize(restore_organism_group)
 
@@ -274,6 +284,7 @@ class Model:
             organism_group.eat()
 
         ogs_to_add = []
+        ogs_to_kill = []
         # Then loop through all organisms to process reproduction/competition/dispersion
         for organism_group in self.context.agents():
             # Pick one of these at random based on rate of events
@@ -282,8 +293,26 @@ class Model:
                 og = organism_group.reproduce(self.organism_reproduction_age[organism_group.type])
                 if og is not None:
                     ogs_to_add.append(og)
-            elif choice == 1:            
-                organism_group.compete(self.grid)
+            elif choice == 1:
+                coords = organism_group.pt.coordinates
+                nghs = self.ngh_finder.find(coords[0], coords[1], coords[2])
+
+                food_types = self.food_dependency[organism_group.type]
+                food_opts = []
+
+                if len(food_types) != 0:
+                    at = dpt(0, 0, 0)
+                    for ngh in nghs:
+                        at._reset_from_array(ngh)
+
+                        for obj in self.grid.get_agents(at):
+                            if obj.type in food_types:
+                                food_opts.append(obj)
+                
+                uid = organism_group.compete(food_opts)
+                if uid is not None:
+                    ogs_to_kill.append(uid)
+
             else:
                 organism_group.disperse(self.grid, self.organism_range_list[organism_group.type])
 
@@ -295,6 +324,11 @@ class Model:
             pt = dpt(pt_array[0] + xyz_dirs[0], pt_array[1] + xyz_dirs[1], pt_array[2] + xyz_dirs[2])
             self.add_agent(uid[1], pt)
 
+        for uid in list(set(ogs_to_kill)):
+            agent = self.context.agent(uid)
+            if agent is not None:
+                self.remove_agent(agent)
+        
         self.context.synchronize(restore_organism_group)
 
     def log_agents(self):

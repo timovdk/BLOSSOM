@@ -1,11 +1,11 @@
 random.seed: 42
-stop.at: 100
+stop.at: 50
 organism_group.count: 800
 organism_group.types: {'Bacteria': 1, 'Fungi': 1, 'Nematodes': 1, 'Mites': 1}
-organism_group.rates: {'Bacteria': [0.35, 0.35, 0.3], 'Fungi': [0.4, 0.6, 0], 'Nematodes': [0.4, 0.3, 0.3], 'Mites': [0.3, 0.4, 0.3]}
+organism_group.rates: {'Bacteria': [0.8, 0, 0.2], 'Fungi': [0.4, 0.6, 0], 'Nematodes': [0.2, 0.6, 0.2], 'Mites': [0.3, 0.4, 0.3]}
 organism_group.ranges: {'Bacteria': 4, 'Fungi': 0, 'Nematodes': 6, 'Mites': 10}
-organism_group.repr_age: {'Bacteria': 4, 'Fungi': 10, 'Nematodes': 12, 'Mites': 20}
-organism_group.death_age: {'Bacteria': 8, 'Fungi': 14, 'Nematodes': 16, 'Mites': 24}
+organism_group.repr_age: {'Bacteria': 0, 'Fungi': 10, 'Nematodes': 12, 'Mites': 20}
+organism_group.death_age: {'Bacteria': 2, 'Fungi': 14, 'Nematodes': 16, 'Mites': 24}
 world.width: 400
 world.height: 400
 world.depth: 200
@@ -13,3 +13,4 @@ meet_log_file: 'output/meet_log.csv'
 agent_log_file: 'output/agent_log.csv'
 #walker.types: {'Bacteria': 2000, 'Fungi': 1000, 'Mycorrhizae': 1000, 'Flagellates': 200, 'Amoebae': 200, 'Bacteriophagous Nematodes': 200, 'Fungivorous Nematodes': 200, 'Root-feeding Nematodes': 200, 'Omnivorous Nematodes': 200, 'Predaceous Nematodes': 200, 'Collembolans': 100, 'Fungivorous Mites': 100, 'Nematode-feeding Mites': 50, 'Predaceous Mites': 50, 'Earhworms': 1}
 co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"organism": "bacteria", "id": 0}, {"organism": "fungi", "id": 1}, {"organism": "nematode", "id": 2}, {"organism": "mite", "id": 3}], "links": [{"weight": -0.5, "source": 0, "target": 1}, {"weight": 0.5, "source": 1, "target": 2}, {"weight": 0.3, "source": 1, "target": 3}, {"weight": 0.4, "source": 2, "target": 3}]}'
+trophic_network: '{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"organism": "bacteria", "id": 0}, {"organism": "fungi", "id": 1}, {"organism": "nematode", "id": 2}, {"organism": "mite", "id": 3}], "links": [{"weight": -0.5, "source": 0, "target": 2}, {"weight": 0.3, "source": 1, "target": 2}, {"weight": 0.4, "source": 1, "target": 3}, {"weight": 0.5, "source": 2, "target": 3}]}'
