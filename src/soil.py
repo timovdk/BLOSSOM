@@ -92,6 +92,7 @@ class OrganismGroup(core.Agent):
         super().__init__(id=local_id, type=type, rank=rank)
         self.pt = pt
         self.age = 0
+        self.biomass = 0
 
     def save(self) -> Tuple:
         """Saves the state of this OrganismGroup as a Tuple.
@@ -99,15 +100,16 @@ class OrganismGroup(core.Agent):
         Returns:
             The saved state of this OrganismGroup.
         """
-        return (self.uid, self.pt.coordinates, self.age)
+        return (self.uid, self.pt.coordinates, self.age, self.biomass)
 
     def check_death(self, death_age):
         if self.age >= death_age:
             return self.uid
 
-    def eat(self):
-        return None
+    def eat(self, food):
+        self.biomass += food
 
+    # todo: implement biomass cutoff
     def reproduce(self, reproduction_age):
         #print('repr')
         if self.age > reproduction_age:
@@ -139,9 +141,9 @@ def restore_organism_group(organism_group_data: Tuple):
     """
     Args:
         organism_group_data: tuple containing the data returned by OrganismGroup.save.
-        0: uid, 1: meet_count, 2: location
+        0: uid, 1: location, 2: age, 3: biomass
     """
-    # o_g_d is a 3 element tuple: 0 is uid, 1 is location, 2 is age
+    # o_g_d is a 4 element tuple: 0 is uid, 1 is location, 2 is age, 3 is biomass
     # uid is a 3 element tuple: 0 is id, 1 is type, 2 is rank
     uid = organism_group_data[0]
     pt_array = organism_group_data[1]
@@ -155,6 +157,7 @@ def restore_organism_group(organism_group_data: Tuple):
 
     organism_group.pt = pt
     organism_group.age = organism_group_data[2]
+    organism_group.biomass = organism_group_data[3]
     return organism_group
 
 
@@ -189,6 +192,11 @@ class Model:
         self.co_occ_network = nx.node_link_graph(json.loads(params['co_occ_network']))
         self.sorted_occ_net = sorted(self.co_occ_network.degree, key=lambda x: x[1], reverse=True)
         self.trophic_net = nx.node_link_graph(json.loads(params['trophic_network']))
+        self.width = params['world.width']
+        self.height = params['world.height']
+        self.depth = params['world.depth']
+
+        self.nutrient_grid = np.random.rand(self.width, self.height, self.depth)*0.25
 
         self.food_dependency = []
         for x in range(len(self.trophic_net.nodes())):
@@ -200,7 +208,7 @@ class Model:
             self.food_dependency.append(food)
 
         # create a bounding box equal to the size of the entire global world grid
-        box = space.BoundingBox(0, params['world.width'], 0, params['world.height'], 0, params['world.depth'])
+        box = space.BoundingBox(0, params['world.width']-1, 0, params['world.height']-1, 0, params['world.depth']-1)
         # create a SharedGrid of 'box' size with sticky borders that allows multiple agents
         # in each grid location.
         self.grid = space.SharedGrid(name='grid', bounds=box, borders=space.BorderType.Sticky,
@@ -252,7 +260,7 @@ class Model:
                     offsets = rng.choice([[0, 0, 1], [0, 1, 0], [-1, 0, 0], [0, 0, 0], [1, 0, 0], [0, -1, 0], [0, 0, -1]], size=1)[0]
                     
                     # get a location based on the co_occ_loc and offset, and add an agent here
-                    pt = dpt(co_occ_loc.x + offsets[0], co_occ_loc.y + offsets[1], co_occ_loc.z + offsets[2])
+                    pt = dpt(min(self.height-1, co_occ_loc.x + offsets[0]), min(self.width-1, co_occ_loc.y + offsets[1]), min(self.depth-1, co_occ_loc.z + offsets[2]))
                     self.add_agent(og_type_to_add, pt)
            
             # else add the agents of this type on a random location
@@ -279,12 +287,17 @@ class Model:
         
         self.context.synchronize(restore_organism_group)
 
+        #todo: make nutrient uptake based on monod's eq
         for organism_group in self.context.agents():
             # If the organism_group survives, determine nutrient uptake
-            organism_group.eat()
+            coords = organism_group.pt.coordinates
+            food = self.nutrient_grid[coords[0]][coords[1]][coords[2]]
+            organism_group.eat(food)
 
         ogs_to_add = []
         ogs_to_kill = []
+
+        #todo: make this loop random
         # Then loop through all organisms to process reproduction/competition/dispersion
         for organism_group in self.context.agents():
             # Pick one of these at random based on rate of events
@@ -321,7 +334,7 @@ class Model:
             pt_array = og[1]
             xyz_dirs = random.default_rng.choice(OrganismGroup.OFFSETS, size=3)
             
-            pt = dpt(pt_array[0] + xyz_dirs[0], pt_array[1] + xyz_dirs[1], pt_array[2] + xyz_dirs[2])
+            pt = dpt(min(self.width-1, pt_array[0] + xyz_dirs[0]), min(self.height-1, pt_array[1] + xyz_dirs[1]), min(self.depth-1, pt_array[2] + xyz_dirs[2]))
             self.add_agent(uid[1], pt)
 
         for uid in list(set(ogs_to_kill)):
@@ -349,6 +362,8 @@ class Model:
         self.context.remove(agent)
 
     def add_agent(self, type, pt):
+        coords = pt.coordinates
+
         og = OrganismGroup(self.organism_id, type, self.rank, pt)
         self.organism_id += 1
         self.context.add(og)
