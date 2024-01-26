@@ -1,6 +1,8 @@
 from typing import Dict
 from mpi4py import MPI
 
+import numpy as np
+
 import repast4py.context as ctx
 from repast4py import random, schedule, space, logging
 from repast4py.space import DiscretePoint as dpt
@@ -10,7 +12,7 @@ import json
 import networkx as nx
 from .agent import OrganismGroup, restore_organism_group
 
-from .utils import GridNghFinder
+from .utils import von_neumann_neighborhood_3d
 
 
 class Model:
@@ -43,9 +45,9 @@ class Model:
 
         # load parameters
         self.organism_parameters = params["organism_parameters"]
-        self.width = params["world.width"]
-        self.height = params["world.height"]
-        self.depth = params["world.depth"]
+        self.x_max = params["world.width"]
+        self.y_max = params["world.height"]
+        self.z_max = params["world.depth"]
 
         # load networks
         self.co_occ_network = nx.node_link_graph(json.loads(params["co_occ_network"]))
@@ -56,7 +58,7 @@ class Model:
 
         # Initialize som grid
         self.nutrient_grid = (
-            self.rng.random((self.width, self.height, self.depth)) * 0.25
+            self.rng.random((self.x_max, self.y_max, self.z_max)) * 0.25
         )
 
         # determine the food dependency per organism type
@@ -72,11 +74,11 @@ class Model:
         # create a bounding box equal to the size of the entire global world grid
         box = space.BoundingBox(
             0,
-            params["world.width"] - 1,
+            self.x_max - 1,
             0,
-            params["world.height"] - 1,
+            self.y_max - 1,
             0,
-            params["world.depth"] - 1,
+            self.z_max - 1,
         )
         # create a SharedGrid of 'box' size with sticky borders that allows multiple agents
         # in each grid location.
@@ -89,9 +91,6 @@ class Model:
             comm=comm,
         )
         self.context.add_projection(self.grid)
-
-        # initialize grid searcher
-        self.ngh_finder = GridNghFinder(0, 0, 0, box.xextent, box.yextent, box.zextent)
 
         # populate the model
         self.populate()
@@ -146,32 +145,26 @@ class Model:
                     co_occurring_agents.extend(list(self.context.agents(agent_type=d)))
 
                 for _ in range(num_ogs_to_add):
-                    choice = self.rng.choice([0, 1], size=1, p=[0.75, 0.25])[0]
+                    choice = self.rng.choice(2, p=[0.75, 0.25])
                     if choice == 0:
                         # Get the location of a random co-occurring agent and get a random offset
                         # offset is based on Von Neumann distance of r=1, including the 0,0,0
                         co_occ_loc = self.grid.get_location(
-                            self.rng.choice(co_occurring_agents, size=1)[0]
+                            co_occurring_agents[
+                                self.rng.choice(len(co_occurring_agents))
+                            ]
                         )
-                        offsets = self.rng.choice(
-                            [
-                                [0, 0, 1],
-                                [0, 1, 0],
-                                [-1, 0, 0],
-                                [0, 0, 0],
-                                [1, 0, 0],
-                                [0, -1, 0],
-                                [0, 0, -1],
-                            ],
-                            size=1,
-                        )[0]
 
-                        # get a location based on the co_occ_loc and offset, and add an agent here
-                        pt = dpt(
-                            min(self.height - 1, co_occ_loc.x + offsets[0]),
-                            min(self.width - 1, co_occ_loc.y + offsets[1]),
-                            min(self.depth - 1, co_occ_loc.z + offsets[2]),
+                        nghs = von_neumann_neighborhood_3d(
+                            (co_occ_loc.x, co_occ_loc.y, co_occ_loc.z),
+                            1,
+                            self.x_max,
+                            self.y_max,
+                            self.z_max,
                         )
+                        loc = nghs[self.rng.choice(len(nghs))]
+                        # get a location based on the co_occ_loc and offset, and add an agent here
+                        pt = dpt(loc[0], loc[1], loc[2])
                         self.add_agent(og_type_to_add, pt)
                     else:
                         # get a random x,y,z location in the grid and add an agent here
@@ -190,6 +183,8 @@ class Model:
         ogs_to_add = []
         ogs_to_kill = []
 
+        # time_start_step = time.perf_counter()
+
         # First loop through all organisms to process check_death and nutrient uptake
         for organism_group in self.context.agents():
             organism_parameters = self.organism_parameters[organism_group.type]
@@ -199,21 +194,27 @@ class Model:
             if organism_group.age >= organism_parameters["age_max"]:
                 self.nutrient_grid[coords[0]][coords[1]][
                     coords[2]
-                ] = organism_group.biomass
+                ] += organism_group.biomass
                 ogs_to_kill.append(organism_group.uid)
                 continue
 
             # If the organism_group survives, determine nutrient uptake
-            # todo: make nutrient uptake based on monod's eq
-            food = self.nutrient_grid[coords[0]][coords[1]][coords[2]]
-            self.nutrient_grid[coords[0]][coords[1]][coords[2]] = 0
+            food_available = self.nutrient_grid[coords[0]][coords[1]][coords[2]]
+            uptake = (
+                organism_parameters["mu_max"]
+                * food_available
+                / (organism_parameters["k"] + food_available)
+            )
 
             if organism_group.biomass < organism_parameters["biomass_max"]:
-                organism_group.biomass += food
+                organism_group.biomass += uptake
+                self.nutrient_grid[coords[0]][coords[1]][coords[2]] = (
+                    food_available - uptake
+                )
 
             # Pick one of these at random based on rate of events
             choice = self.rng.choice(
-                [0, 1, 2],
+                3,
                 p=[
                     organism_parameters["rate_reproduction"],
                     organism_parameters["rate_competition"],
@@ -230,7 +231,9 @@ class Model:
                     ogs_to_add.append(organism_group.save())
 
             elif choice == 1:
-                nghs = self.ngh_finder.find(coords[0], coords[1], coords[2])
+                nghs = von_neumann_neighborhood_3d(
+                    coords, 1, self.x_max, self.y_max, self.z_max
+                )
 
                 food_types = self.food_dependency[organism_group.type]
                 food_opts = []
@@ -238,34 +241,36 @@ class Model:
                 if len(food_types) != 0:
                     at = dpt(0, 0, 0)
                     for ngh in nghs:
-                        at._reset_from_array(ngh)
+                        at._reset_from_array(np.asarray(ngh))
 
                         for obj in self.grid.get_agents(at):
                             if obj.type in food_types and obj.uid:
                                 food_opts.append(obj)
 
                 if food_opts:
-                    target_og = self.rng.choice(food_opts, size=1)[0]
+                    target_og = food_opts[self.rng.choice(len(food_opts))]
                     target_coords = target_og.pt.coordinates
                     self.nutrient_grid[target_coords[0]][target_coords[1]][
                         target_coords[2]
                     ] = target_og.biomass
                     ogs_to_kill.append(target_og.uid)
-
             else:
                 # choose two elements from the OFFSET array
                 # to select the direction to disperse in the
                 # x,y,z dimensions
-                xyz_dirs = (
-                    self.rng.choice(OrganismGroup.OFFSETS, size=3)
-                    * organism_parameters["range_dispersal"]
+                options = von_neumann_neighborhood_3d(
+                    coords,
+                    8,
+                    self.x_max,
+                    self.y_max,
+                    self.z_max,
                 )
+                disperse_location = options[self.rng.choice(len(options))]
+
                 organism_group.pt = self.grid.move(
                     organism_group,
                     dpt(
-                        coords[0] + xyz_dirs[0],
-                        coords[1] + xyz_dirs[1],
-                        coords[2] + xyz_dirs[2],
+                        disperse_location[0], disperse_location[1], disperse_location[2]
                     ),
                 )
 
@@ -273,13 +278,16 @@ class Model:
 
         for og in ogs_to_add:
             pt_array = og[1]
-            xyz_dirs = self.rng.choice(OrganismGroup.OFFSETS, size=3)
-
-            pt = dpt(
-                min(self.width - 1, pt_array[0] + xyz_dirs[0]),
-                min(self.height - 1, pt_array[1] + xyz_dirs[1]),
-                min(self.depth - 1, pt_array[2] + xyz_dirs[2]),
+            nghs = von_neumann_neighborhood_3d(
+                (pt_array[0], pt_array[1], pt_array[2]),
+                1,
+                self.x_max,
+                self.y_max,
+                self.z_max,
             )
+            loc = nghs[self.rng.choice(len(nghs))]
+            pt = dpt(loc[0], loc[1], loc[2])
+
             self.add_agent(og[0][1], pt)
 
         for uid in list(set(ogs_to_kill)):
@@ -288,6 +296,10 @@ class Model:
                 self.remove_agent(agent)
 
         self.context.synchronize(restore_organism_group)
+
+        # time_end_step = time.perf_counter()
+        # time_duration = time_end_step - time_start_step
+        # print(f"Step took {time_duration:.3f} seconds")
 
     def log_agents(self):
         tick = int(self.runner.schedule.tick)

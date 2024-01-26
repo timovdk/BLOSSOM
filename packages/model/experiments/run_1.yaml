@@ -1,5 +1,5 @@
 random.seed: 42
-stop.at: 400
+stop.at: 1000
 world.width: 400
 world.height: 400
 world.depth: 20
@@ -20,7 +20,7 @@ organism_parameters: [
     biomass_reproduction: 0.0000075,
     biomass_max: 0.000015,
     mu_max: 0.000015,
-    k: 0.000081    
+    k: 0.0000075   
 },
 {
     label: 'Fungi',
@@ -35,7 +35,7 @@ organism_parameters: [
     biomass_reproduction: 0.0000075,
     biomass_max: 0.000015,
     mu_max: 0.000015,
-    k: 0.000081    
+    k: 0.0000075    
 },
 {
     label: 'Nematodes',
@@ -49,22 +49,22 @@ organism_parameters: [
     age_max: 16,
     biomass_reproduction: 0.01,
     biomass_max: 0.02,
-    mu_max: 0.000015,
-    k: 0.000081    
+    mu_max: 0.02,
+    k: 0.01    
 },
 {
     label: 'Mites',
     count: 200,
     type: 3,
-    rate_reproduction: 0.3,
-    rate_competition: 0.4,
+    rate_reproduction: 0.35,
+    rate_competition: 0.35,
     rate_dispersal: 0.3,
     range_dispersal: 10,
     age_reproduction: 20,
     age_max: 24,
     biomass_reproduction: 0.01,
     biomass_max: 0.02,
-    mu_max: 0.000015,
-    k: 0.000081    
+    mu_max: 0.02,
+    k: 0.01   
 }
 ]
