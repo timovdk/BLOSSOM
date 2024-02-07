@@ -2,16 +2,28 @@ import m from 'mithril';
 import Stream from 'mithril/stream';
 import { merge } from '../utils/mergerino';
 import { GUISocket } from './socket';
+import { routingSvc } from './routing-service';
+import { Pages } from '../models/page';
 
 export interface IAppModel {
     app: {
         // Core
         socket: GUISocket;
+
+        data: Array<Array<Array<Array<number>>>>
     };
 }
 
 export interface IActions {
+    // Utils
+    switchToPage: (
+      pageId: Pages,
+      params?: { [key: string]: string | number | undefined },
+      query?: { [key: string]: string | number | undefined }
+    ) => void;
     runModel: () => void;
+
+    updateData: (newData: Array<Array<Array<Array<number>>>>) => void;
 }
 
 export type ModelUpdateFunction = Partial<IAppModel> | ((model: Partial<IAppModel>) => Partial<IAppModel>);
@@ -26,10 +38,21 @@ export const appStateMgmt = {
             socket: new GUISocket(update),
         },
     },
-    actions: (_us: UpdateStream, _states: Stream<IAppModel>) => {
+    actions: (us: UpdateStream, _states: Stream<IAppModel>) => {
         return {
+            // Utils
+            switchToPage: (
+              pageId: Pages,
+              params?: { [key: string]: string | number | undefined },
+              query?: { [key: string]: string | number | undefined }
+            ) => {
+              routingSvc.switchTo(pageId, params, query);
+            },
             runModel: () => {
                 states()['app'].socket.runModel();
+            },
+            updateData: (newData: Array<Array<Array<Array<number>>>>) => {
+                us({app: {data: newData}})
             }
         };
     },

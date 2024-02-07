@@ -1,6 +1,7 @@
 import eventlet
 import socketio
-import subprocess
+import subprocess 
+import pandas as pd
 
 sio = socketio.Server(cors_allowed_origins="*")
 app = socketio.WSGIApp(sio)
@@ -14,14 +15,25 @@ def connect(sid, environ):
 @sio.event
 def run_model(sid):
     print('running')
-    subprocess.run("time mpirun -n 4 python ../model/experiments/main.py ../model/experiments/run_1.yaml",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        check=True,
-        text=True,
-    )
-    print('done')
+    #subprocess.run("time mpirun -n 4 python ../model/experiments/main.py ../model/experiments/run_2.yaml",
+    #    stdout=subprocess.PIPE,
+    #    stderr=subprocess.PIPE,
+    #    shell=True,
+    #    check=True,
+    #    text=True,
+    #)
+    df = pd.read_csv('./output/agent_log.csv')
+    data = []
+    for tick in range(df['tick'].max()):
+        data.append([])
+    
+        for tp in range(len(df['type'].unique())):
+            data[tick].append([])
+            data[tick][tp].append(list(df[(df["tick"] == tick) & (df['type'] == tp)]['x']))
+            data[tick][tp].append(list(df[(df["tick"] == tick) & (df['type'] == tp)]['y']))
+            data[tick][tp].append(list(df[(df["tick"] == tick) & (df['type'] == tp)]['z']))
+
+    sio.emit('newData', data=data)
 
 
 @sio.event

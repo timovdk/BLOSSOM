@@ -55,6 +55,7 @@ module.exports = () => {
         },
         resolve: {
             extensions: ['.ts', '.js', '.json'],
+            fallback: { "stream": require.resolve("stream-browserify") },
         },
         optimization: {
             minimizer: [

@@ -15,15 +15,20 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "assert": "^2.1.0",
+    "buffer": "^6.0.3",
     "material-icons": "^1.13.12",
     "materialize-css": "^1.0.0",
     "mithril": "^2.2.2",
     "mithril-materialized": "^1.1.4",
-    "socket.io-client": "^4.7.4"
+    "plotly.js": "^2.29.0",
+    "socket.io-client": "^4.7.4",
+    "stream-browserify": "^3.0.0"
   },
   "devDependencies": {
     "@types/materialize-css": "^1.0.14",
     "@types/mithril": "^2.2.6",
+    "@types/plotly.js-basic-dist": "^1.54.4",
     "css-loader": "^6.9.1",
     "css-minimizer-webpack-plugin": "^6.0.0",
     "dotenv-webpack": "^8.0.1",
