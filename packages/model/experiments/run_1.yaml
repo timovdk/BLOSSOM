@@ -1,5 +1,5 @@
 random.seed: 42
-stop.at: 1000
+stop.at: 400
 world.width: 400
 world.height: 400
 world.depth: 20

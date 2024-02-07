@@ -14,6 +14,8 @@ from .agent import OrganismGroup, restore_organism_group
 
 from .utils import von_neumann_neighborhood_3d
 
+# import time
+
 
 class Model:
     """
@@ -58,18 +60,23 @@ class Model:
 
         # Initialize som grid
         self.nutrient_grid = (
-            self.rng.random((self.x_max, self.y_max, self.z_max)) * 0.25
+            self.rng.random((self.x_max, self.y_max, self.z_max), dtype=np.float64)
+            * 0.25
         )
 
-        # determine the food dependency per organism type
         self.food_dependency = []
-        for x in range(len(self.trophic_net.nodes())):
-            edges = self.trophic_net.in_edges(nbunch=x)
-            food = []
-            if edges:
-                for k in edges:
-                    food.append(k[0])
-            self.food_dependency.append(food)
+        # Iterate over all nodes
+        for node in self.trophic_net.nodes():
+            # Get the nodes that have edges pointing to the current node
+            self.food_dependency.append(
+                [n for n in self.trophic_net.predecessors(node)]
+            )
+
+        self.co_occurrence = []
+        # Iterate over all nodes
+        for node in self.co_occ_network.nodes():
+            # Get the nodes that have edges pointing to the current node
+            self.co_occurrence.append([n for n in self.co_occ_network.neighbors(node)])
 
         # create a bounding box equal to the size of the entire global world grid
         box = space.BoundingBox(
@@ -182,6 +189,7 @@ class Model:
     def step(self):
         ogs_to_add = []
         ogs_to_kill = []
+        # total_time = 0
 
         # time_start_step = time.perf_counter()
 
@@ -192,14 +200,14 @@ class Model:
 
             # First determine whether this organism_group survives
             if organism_group.age >= organism_parameters["age_max"]:
-                self.nutrient_grid[coords[0]][coords[1]][
-                    coords[2]
+                self.nutrient_grid[
+                    coords[0], coords[1], coords[2]
                 ] += organism_group.biomass
                 ogs_to_kill.append(organism_group.uid)
                 continue
 
             # If the organism_group survives, determine nutrient uptake
-            food_available = self.nutrient_grid[coords[0]][coords[1]][coords[2]]
+            food_available = self.nutrient_grid[coords[0], coords[1], coords[2]]
             uptake = (
                 organism_parameters["mu_max"]
                 * food_available
@@ -208,7 +216,7 @@ class Model:
 
             if organism_group.biomass < organism_parameters["biomass_max"]:
                 organism_group.biomass += uptake
-                self.nutrient_grid[coords[0]][coords[1]][coords[2]] = (
+                self.nutrient_grid[coords[0], coords[1], coords[2]] = (
                     food_available - uptake
                 )
 
@@ -250,22 +258,47 @@ class Model:
                 if food_opts:
                     target_og = food_opts[self.rng.choice(len(food_opts))]
                     target_coords = target_og.pt.coordinates
-                    self.nutrient_grid[target_coords[0]][target_coords[1]][
-                        target_coords[2]
+                    self.nutrient_grid[
+                        target_coords[0], target_coords[1], target_coords[2]
                     ] = target_og.biomass
                     ogs_to_kill.append(target_og.uid)
             else:
                 # choose two elements from the OFFSET array
                 # to select the direction to disperse in the
                 # x,y,z dimensions
+                # start_time = time.perf_counter()
                 options = von_neumann_neighborhood_3d(
                     coords,
-                    8,
+                    organism_parameters["range_dispersal"],
                     self.x_max,
                     self.y_max,
                     self.z_max,
                 )
-                disperse_location = options[self.rng.choice(len(options))]
+                # make this choice based on nutrient availability, co-occurrence, and food dependency
+                probs = np.ones(len(options))
+
+                food_types = self.food_dependency[organism_group.type]
+                co_occurring_types = self.co_occurrence[organism_group.type]
+
+                k = organism_parameters["k"]
+                # now check which probability should be boosted
+                for i, opt in enumerate(options):
+                    food_available = self.nutrient_grid[opt[0], opt[1], opt[2]]
+
+                    if food_available < k:
+                        probs[i] = 0
+                        # if any obj type is in either food_types or co_occurring_types, add 0.5
+                        for obj in self.grid.get_agents(dpt(opt[0], opt[1], opt[2])):
+                            if (obj.type in food_types) or (
+                                obj.type in co_occurring_types
+                            ):
+                                probs[i] += 1
+                                break
+
+                # Finally, normalize probabilities so that they sum up to 1
+                probs /= np.sum(probs)
+
+                disperse_location = options[self.rng.choice(len(options), p=probs)]
 
                 organism_group.pt = self.grid.move(
                     organism_group,
@@ -273,6 +306,8 @@ class Model:
                         disperse_location[0], disperse_location[1], disperse_location[2]
                     ),
                 )
+                # end_time = time.perf_counter()
+                # total_time += end_time - start_time
 
             organism_group.age += 1
 
@@ -300,6 +335,7 @@ class Model:
         # time_end_step = time.perf_counter()
         # time_duration = time_end_step - time_start_step
         # print(f"Step took {time_duration:.3f} seconds")
+        # print(f"dispersal took {total_time:.3f} seconds")
 
     def log_agents(self):
         tick = int(self.runner.schedule.tick)
