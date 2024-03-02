@@ -26,17 +26,26 @@ export const Visualization: FactoryComponent<{
         }]
 
         var layout = {
-            title: 'Temperature vs Voltage vs Frequency',
+            title: 'Organisms in Soil',
             autosize: true,
-            scene: {
-                xaxis:{ title: 'x',
-                        autorange: true},
-
-                yaxis:{ title: 'y',
-                        autorange: true},
-
-                zaxis:{ title: 'z',
-                        autorange: true},
+            scene:{
+                hoverinfo: "text",
+                aspectmode: "data",
+                aspectratio: {
+                    x: 1, y: 1, z: 1,
+                },
+                xaxis: {
+                    nticks: 10,
+                    autorange: true
+                },
+                yaxis: {
+                    nticks: 10,
+                    autorange: true 
+                },
+                zaxis: {
+                    nticks: 10,
+                    autorange: true
+                }                   
             },
             margin: {
                 l: 6.5,
@@ -46,7 +55,6 @@ export const Visualization: FactoryComponent<{
               },
             colorscale: 'Viridis',
             showscale: true,
-            aspectmode: 'data',
         };
         var config = {responsive: true}
         Plotly.newPlot('graph', data, layout, config);
@@ -76,19 +84,26 @@ export const Visualization: FactoryComponent<{
             })
 
             var layout = {
-                title: 'Temperature vs Voltage vs Frequency',
+                title: 'Organisms in Soil',
                 autosize: true,
-                scene: {
-                    xaxis:{ title: 'x',
-                            autorange: true},
-    
-                    yaxis:{ title: 'y',
-                            autorange: true},
-    
-                    zaxis:{ title: 'z',
-                            autorange: true,
-
-                        },
+                scene:{
+                    hoverinfo: "text",
+                    aspectmode: "data",
+                    aspectratio: {
+                        x: 1, y: 1, z: 1,
+                    },
+                    xaxis: {
+                        nticks: 10,
+                        autorange: true
+                    },
+                    yaxis: {
+                        nticks: 10,
+                        autorange: true 
+                    },
+                    zaxis: {
+                        nticks: 10,
+                        autorange: true
+                    }                   
                 },
                 margin: {
                     l: 6.5,

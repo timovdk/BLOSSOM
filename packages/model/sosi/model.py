@@ -61,7 +61,7 @@ class Model:
         # Initialize som grid
         self.nutrient_grid = (
             self.rng.random((self.x_max, self.y_max, self.z_max), dtype=np.float64)
-            * 0.25
+            * 0.01
         )
 
         self.food_dependency = []
@@ -94,7 +94,7 @@ class Model:
             bounds=box,
             borders=space.BorderType.Sticky,
             occupancy=space.OccupancyType.Multiple,
-            buffer_size=2,
+            buffer_size=20,
             comm=comm,
         )
         self.context.add_projection(self.grid)
@@ -286,7 +286,7 @@ class Model:
                     food_available = self.nutrient_grid[opt[0], opt[1], opt[2]]
 
                     if food_available < k:
-                        probs[i] = 0
+                        probs[i] = 0.1
                         # if any obj type is in either food_types or co_occurring_types, add 0.5
                         for obj in self.grid.get_agents(dpt(opt[0], opt[1], opt[2])):
                             if (obj.type in food_types) or (
