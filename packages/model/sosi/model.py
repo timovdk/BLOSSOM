@@ -61,7 +61,7 @@ class Model:
         # Initialize som grid
         self.nutrient_grid = (
             self.rng.random((self.x_max, self.y_max, self.z_max), dtype=np.float64)
-            * 0.01
+            * 0.005
         )
 
         self.food_dependency = []
@@ -114,8 +114,6 @@ class Model:
                 "x",
                 "y",
                 "z",
-                "age",
-                "biomass",
             ],
         )
 
@@ -349,8 +347,6 @@ class Model:
                 coords[0],
                 coords[1],
                 coords[2],
-                organism_group.age,
-                organism_group.biomass,
             )
 
         self.agent_logger.write()
