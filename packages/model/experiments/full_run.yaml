@@ -1,10 +1,10 @@
 random.seed: 42
-stop.at: 200
+stop.at: 300
 world.width: 400
 world.height: 400
-world.depth: 20
+world.depth: 50
 agent_log_file: 'output/agent_log.csv'
-co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"organism": "bacteria", "id": 0}, {"organism": "fungi", "id": 1}, {"organism": "mycorrhizae", "id": 2}, {"organism": "amoebae", "id": 3}, {"organism": "flagellates", "id": 4}, {"organism": "root-feeding nematodes", "id": 5}, {"organism": "bacterivorous nematodes", "id": 6}, {"organism": "fungivorous nematodes", "id": 7}, {"organism": "omnivorous nematodes", "id": 8}, {"organism": "fungivorous mites", "id": 9}, {"organism": "omnivorous mites", "id": 10}, {"organism": "collembolans", "id": 11}], "links": [{"weight": -0.5, "source": 0, "target": 6}, {"weight": -0.5, "source": 0, "target": 4}, {"weight": -0.5, "source": 0, "target": 8}, {"weight": -0.5, "source": 0, "target": 3}, {"weight": -0.5, "source": 1, "target": 7}, {"weight": -0.5, "source": 1, "target": 9}, {"weight": -0.5, "source": 1, "target": 11}, {"weight": -0.5, "source": 2, "target": 7}, {"weight": -0.5, "source": 2, "target": 9}, {"weight": -0.5, "source": 2, "target": 11}, {"weight": -0.5, "source": 3, "target": 8}, {"weight": -0.5, "source": 3, "target": 4}, {"weight": -0.5, "source": 4, "target": 8}, {"weight": -0.5, "source": 5, "target": 8}, {"weight": -0.5, "source": 5, "target": 10}, {"weight": -0.5, "source": 6, "target": 8}, {"weight": -0.5, "source": 6, "target": 10}, {"weight": -0.5, "source": 7, "target": 8}, {"weight": -0.5, "source": 7, "target": 10}, {"weight": -0.5, "source": 8, "target": 10}, {"weight": -0.5, "source": 9, "target": 10}, {"weight": -0.5, "source": 10, "target": 11}]}'
+co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}, {"id": 10}, {"id": 11}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 2}, {"weight": 0.6148356427539814, "source": 0, "target": 3}, {"weight": 0.7306576990838498, "source": 0, "target": 5}, {"weight": 0.9003900420385831, "source": 0, "target": 9}, {"weight": -0.638579754693958, "source": 0, "target": 11}, {"weight": -0.27796656418881527, "source": 1, "target": 3}, {"weight": 0.46123412849139406, "source": 1, "target": 4}, {"weight": 0.6068144174853789, "source": 1, "target": 6}, {"weight": 0.5112680070896285, "source": 1, "target": 7}, {"weight": 0.42525572507758125, "source": 1, "target": 10}, {"weight": 0.4601658168250095, "source": 1, "target": 11}, {"weight": 0.4943223393958548, "source": 2, "target": 5}, {"weight": -0.14671525430854027, "source": 2, "target": 6}, {"weight": -0.4038872117981791, "source": 2, "target": 7}, {"weight": 0.5176903249517476, "source": 2, "target": 9}, {"weight": 0.7534244447856359, "source": 3, "target": 4}, {"weight": 0.5244768288592718, "source": 3, "target": 7}, {"weight": 0.7363358287149884, "source": 3, "target": 8}, {"weight": 0.631262017598583, "source": 3, "target": 9}, {"weight": 0.13566419265027413, "source": 4, "target": 5}, {"weight": 0.7444351489453024, "source": 4, "target": 7}, {"weight": -0.4320948133020824, "source": 4, "target": 8}, {"weight": -0.581091373256546, "source": 4, "target": 10}, {"weight": 0.32431559110760866, "source": 4, "target": 11}, {"weight": -0.8711066258559395, "source": 5, "target": 6}, {"weight": 0.41156905052366743, "source": 5, "target": 7}, {"weight": 0.5099768645364847, "source": 5, "target": 8}, {"weight": 0.4833008102788417, "source": 5, "target": 9}, {"weight": 0.5195853232070693, "source": 5, "target": 11}, {"weight": 0.13289492016299193, "source": 6, "target": 7}, {"weight": 0.3292758342014238, "source": 6, "target": 9}, {"weight": 0.2234641095013591, "source": 6, "target": 10}, {"weight": 0.4832578406676551, "source": 7, "target": 10}, {"weight": 0.4634528823561386, "source": 7, "target": 11}, {"weight": 0.5923304281865012, "source": 8, "target": 10}]}'
 trophic_network: '{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"organism": "bacteria", "id": 0}, {"organism": "fungi", "id": 1}, {"organism": "mycorrhizae", "id": 2}, {"organism": "amoebae", "id": 3}, {"organism": "flagellates", "id": 4}, {"organism": "root-feeding nematodes", "id": 5}, {"organism": "bacterivorous nematodes", "id": 6}, {"organism": "fungivorous nematodes", "id": 7}, {"organism": "omnivorous nematodes", "id": 8}, {"organism": "fungivorous mites", "id": 9}, {"organism": "omnivorous mites", "id": 10}, {"organism": "collembolans", "id": 11}], "links": [{"weight": -0.5, "source": 0, "target": 6}, {"weight": -0.5, "source": 0, "target": 4}, {"weight": -0.5, "source": 0, "target": 8}, {"weight": -0.5, "source": 0, "target": 3}, {"weight": -0.5, "source": 1, "target": 7}, {"weight": -0.5, "source": 1, "target": 9}, {"weight": -0.5, "source": 1, "target": 11}, {"weight": -0.5, "source": 2, "target": 7}, {"weight": -0.5, "source": 2, "target": 9}, {"weight": -0.5, "source": 2, "target": 11}, {"weight": -0.5, "source": 3, "target": 8}, {"weight": -0.5, "source": 4, "target": 8}, {"weight": -0.5, "source": 4, "target": 3}, {"weight": -0.5, "source": 5, "target": 8}, {"weight": -0.5, "source": 5, "target": 10}, {"weight": -0.5, "source": 6, "target": 8}, {"weight": -0.5, "source": 6, "target": 10}, {"weight": -0.5, "source": 7, "target": 8}, {"weight": -0.5, "source": 7, "target": 10}, {"weight": -0.5, "source": 8, "target": 10}, {"weight": -0.5, "source": 9, "target": 10}, {"weight": -0.5, "source": 11, "target": 10}]}'
 organism_parameters: [
   {
@@ -26,16 +26,16 @@ organism_parameters: [
     label: 'Fungi',
     count: 2000,
     type: 1,
-    rate_reproduction: 0.5,
-    rate_competition: 0.5,
+    rate_reproduction: 0.52,
+    rate_competition: 0.48,
     rate_dispersal: 0,
     range_dispersal: 0,
     age_reproduction: 5,
     age_max: 8,
-    biomass_reproduction: 0.0000075,
-    biomass_max: 0.000015,
-    mu_max: 0.000015,
-    k: 0.0000075    
+    biomass_reproduction: 0.000008,
+    biomass_max: 0.00002,
+    mu_max: 0.00002,
+    k: 0.000008    
 },
 {
     label: 'Mycorrhizae',
@@ -47,7 +47,7 @@ organism_parameters: [
     range_dispersal: 0,
     age_reproduction: 4,
     age_max: 8,
-    biomass_reproduction: 0.0000075,
+    biomass_reproduction: 0.000007,
     biomass_max: 0.000015,
     mu_max: 0.000015,
     k: 0.0000075    
@@ -56,10 +56,10 @@ organism_parameters: [
     label: 'Amoebae',
     count: 500,
     type: 3,
-    rate_reproduction: 0.15,
+    rate_reproduction: 0.19,
     rate_competition: 0.4,
-    rate_dispersal: 0.45,
-    range_dispersal: 12,
+    rate_dispersal: 0.41,
+    range_dispersal: 8,
     age_reproduction: 12,
     age_max: 20,
     biomass_reproduction: 0.01,
@@ -74,10 +74,10 @@ organism_parameters: [
     rate_reproduction: 0.15,
     rate_competition: 0.4,
     rate_dispersal: 0.45,
-    range_dispersal: 10,
+    range_dispersal: 7,
     age_reproduction: 10,
     age_max: 18,
-    biomass_reproduction: 0.00015,
+    biomass_reproduction: 0.0002,
     biomass_max: 0.0003,
     mu_max: 0.0003,
     k: 0.00015    
@@ -89,7 +89,7 @@ organism_parameters: [
     rate_reproduction: 0.25,
     rate_competition: 0.4,
     rate_dispersal: 0.35,
-    range_dispersal: 4,
+    range_dispersal: 3,
     age_reproduction: 10,
     age_max: 16,
     biomass_reproduction: 0.0075,
@@ -104,7 +104,7 @@ organism_parameters: [
     rate_reproduction: 0.2,
     rate_competition: 0.4,
     rate_dispersal: 0.4,
-    range_dispersal: 4,
+    range_dispersal: 3,
     age_reproduction: 6,
     age_max: 12,
     biomass_reproduction: 0.00015,
@@ -119,8 +119,8 @@ organism_parameters: [
     rate_reproduction: 0.2,
     rate_competition: 0.4,
     rate_dispersal: 0.4,
-    range_dispersal: 6,
-    age_reproduction: 13,
+    range_dispersal: 5,
+    age_reproduction: 14,
     age_max: 20,
     biomass_reproduction: 0.0055,
     biomass_max: 0.015,
@@ -134,7 +134,7 @@ organism_parameters: [
     rate_reproduction: 0.1,
     rate_competition: 0.55,
     rate_dispersal: 0.35,
-    range_dispersal: 14,
+    range_dispersal: 10,
     age_reproduction: 24,
     age_max: 35,
     biomass_reproduction: 0.004,
@@ -149,13 +149,13 @@ organism_parameters: [
     rate_reproduction: 0.19,
     rate_competition: 0.41,
     rate_dispersal: 0.4,
-    range_dispersal: 12,
-    age_reproduction: 16,
+    range_dispersal: 9,
+    age_reproduction: 18,
     age_max: 29,
-    biomass_reproduction: 0.009,
-    biomass_max: 0.04,
-    mu_max: 0.04,
-    k: 0.009   
+    biomass_reproduction: 0.03,
+    biomass_max: 0.06,
+    mu_max: 0.02,
+    k: 0.02  
 },
 {
     label: 'Omnivorous mites',
@@ -164,7 +164,7 @@ organism_parameters: [
     rate_reproduction: 0.05,
     rate_competition: 0.55,
     rate_dispersal: 0.4,
-    range_dispersal: 16,
+    range_dispersal: 11,
     age_reproduction: 16,
     age_max: 45,
     biomass_reproduction: 0.025,
@@ -179,11 +179,11 @@ organism_parameters: [
     rate_reproduction: 0.14,
     rate_competition: 0.46,
     rate_dispersal: 0.4,
-    range_dispersal: 20,
-    age_reproduction: 9,
+    range_dispersal: 12,
+    age_reproduction: 10,
     age_max: 35,
-    biomass_reproduction: 0.028,
-    biomass_max: 0.1,
+    biomass_reproduction: 0.035,
+    biomass_max: 0.15,
     mu_max: 0.025,
     k: 0.025    
 }

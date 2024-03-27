@@ -14,9 +14,6 @@ from .agent import OrganismGroup, restore_organism_group
 
 from .utils import von_neumann_neighborhood_3d
 
-# import time
-
-
 class Model:
     """
     The Model class encapsulates the simulation, and is
@@ -40,8 +37,8 @@ class Model:
 
         # create the schedule
         self.runner = schedule.init_schedule_runner(comm)
-        self.runner.schedule_repeating_event(1, 1, self.step)
-        self.runner.schedule_repeating_event(1.1, 1, self.log_agents)
+        self.runner.schedule_repeating_event(1, 1, self.step, priority_type=schedule.PriorityType.FIRST)
+        self.runner.schedule_repeating_event(1, 1, self.log_agents, priority_type=schedule.PriorityType.LAST)
         self.runner.schedule_stop(params["stop.at"])
         self.runner.schedule_end_event(self.at_end)
 
@@ -116,8 +113,18 @@ class Model:
                 "z",
             ],
         )
+        
+        self.nutrient_grid_logger = logging.TabularLogger(
+            self.comm,
+            params["nutrient_log_file"],
+            [
+                "tick"
+                "grid"
+            ]
+        )
 
         self.log_agents()
+        self.log_nutrient_grid()
 
     def populate(self):
         ranks = self.comm.Get_size()
@@ -128,37 +135,51 @@ class Model:
         # for each organism group type, add entities
         for i in range(len(self.organism_parameters)):
             og_type_to_add = self.sorted_occ_net[i][0]
+            co_occurring_types = self.co_occurrence[og_type_to_add]
 
             # number of ogs to add is the initial count divided by the number of ranks
             num_ogs_to_add = int(
                 self.organism_parameters[og_type_to_add]["count"] / ranks
             )
+            
+            # If any of the already added types co-occur with the type we are adding currently, ensure placement is based on co-occurrence weights
+            if any(co_occurring_type in og_types_added for co_occurring_type in co_occurring_types):
+                # Find the types that are already placed and co-occur with og_type_to_add
+                relevant_og_types_added = list(set(og_types_added).intersection(co_occurring_types))
 
-            # If any of the already added types co-occur with the type we are adding currently, ensure placement is based on co-occurrence
-            if any([og_type_to_add in self.co_occ_network[p] for p in og_types_added]):
-                og_types_added.append(og_type_to_add)
+                # Find placed agents per type and weights per type
+                co_occurring_agents = {}
+                weights = {}
+                for type_id in relevant_og_types_added:
+                    co_occurring_agents[type_id] = list(self.context.agents(agent_type=type_id))
+                    weights[type_id] = self.co_occ_network.get_edge_data(og_type_to_add, type_id)
 
-                # Find the types that are already placed
-                intersection = list(
-                    set(self.co_occ_network[og_type_to_add]).intersection(
-                        og_types_added
-                    )
-                )
-
-                co_occurring_agents = []
-                for d in intersection:
-                    co_occurring_agents.extend(list(self.context.agents(agent_type=d)))
-
+                # For each og that should be added for this og_type:
                 for _ in range(num_ogs_to_add):
-                    choice = self.rng.choice(2, p=[0.75, 0.25])
+                    # Randomly pick a co occurring type
+                    co_occ_og_id = self.rng.choice(relevant_og_types_added)
+                    
+                    co_occurring_ogs = co_occurring_agents.get(co_occ_og_id)
+                    
+                    coords = []
+                    for og in co_occurring_ogs:
+                        loc = self.grid.get_location(og)
+                        coords.append((loc.x, loc.y, loc.z))
+                               
+                    # Decide between positive, negative, random placement from this type          
+                    weight = weights.get(co_occ_og_id)['weight']
+                    
+                    p_pos = weight if 0 <= weight <= 1 else 0
+                    p_neg = abs(weight) if -1 <= weight < 0 else 0
+                    p_rand = 1 - abs(weight) if -1 <= weight < 0 else 1 - weight if 0 <= weight <= 1 else 0
+                    
+                    choice = self.rng.choice(3, p=[p_pos, p_neg, p_rand])
+                    
+                    # If positive placement
                     if choice == 0:
                         # Get the location of a random co-occurring agent and get a random offset
                         # offset is based on Von Neumann distance of r=1, including the 0,0,0
-                        co_occ_loc = self.grid.get_location(
-                            co_occurring_agents[
-                                self.rng.choice(len(co_occurring_agents))
-                            ]
-                        )
+                        co_occ_loc = self.grid.get_location(co_occurring_ogs[self.rng.choice(len(co_occurring_ogs))])
 
                         nghs = von_neumann_neighborhood_3d(
                             (co_occ_loc.x, co_occ_loc.y, co_occ_loc.z),
@@ -171,6 +192,34 @@ class Model:
                         # get a location based on the co_occ_loc and offset, and add an agent here
                         pt = dpt(loc[0], loc[1], loc[2])
                         self.add_agent(og_type_to_add, pt)
+                        
+                    # If negative placement:
+                    elif choice == 1:
+                        co_occ_loc = self.grid.get_location(co_occurring_ogs[self.rng.choice(len(co_occurring_ogs))])
+
+                        nghs = von_neumann_neighborhood_3d(
+                            (co_occ_loc.x, co_occ_loc.y, co_occ_loc.z),
+                            3,
+                            self.x_max,
+                            self.y_max,
+                            self.z_max,
+                        )
+                        
+                        max_min_distance = 0
+                        loc = None
+
+                        # Calculate the minimum Von Neumann distance from each point in point_list to all points in target_list
+                        for point in nghs:
+                            min_distance = min(sum(abs(c1 - c2) for c1, c2 in zip(point, target_point) if c1 != c2) for target_point in coords)
+                            if min_distance > max_min_distance:
+                                max_min_distance = min_distance
+                                loc = point
+
+                        # get a location based on the co_occ_loc and add an agent here
+                        pt = dpt(loc[0], loc[1], loc[2])
+                        self.add_agent(og_type_to_add, pt)
+                        
+                    # else, random placement    
                     else:
                         # get a random x,y,z location in the grid and add an agent here
                         pt = self.grid.get_random_local_pt(self.rng)
@@ -183,6 +232,9 @@ class Model:
                     # get a random x,y,z location in the grid and add an agent here
                     pt = self.grid.get_random_local_pt(self.rng)
                     self.add_agent(og_type_to_add, pt)
+            
+            # Finally, add this type to the list of added organism types
+            og_types_added.append(og_type_to_add)
 
     def step(self):
         ogs_to_add = []
@@ -192,7 +244,7 @@ class Model:
         # time_start_step = time.perf_counter()
 
         # First loop through all organisms to process check_death and nutrient uptake
-        for organism_group in self.context.agents():
+        for organism_group in self.context.agents(shuffle=True):
             organism_parameters = self.organism_parameters[organism_group.type]
             coords = organism_group.pt.coordinates
 
@@ -281,21 +333,19 @@ class Model:
                 k = organism_parameters["k"]
                 # now check which probability should be boosted
                 for i, opt in enumerate(options):
-                    food_available = self.nutrient_grid[opt[0], opt[1], opt[2]]
-
-                    if food_available < k:
-                        probs[i] = 0.1
+                    if self.nutrient_grid[opt[0], opt[1], opt[2]] < k:
+                        probs[i] = 0.000001
                         # if any obj type is in either food_types or co_occurring_types, add 0.5
                         for obj in self.grid.get_agents(dpt(opt[0], opt[1], opt[2])):
                             if (obj.type in food_types) or (
                                 obj.type in co_occurring_types
                             ):
-                                probs[i] += 1
+                                probs[i] += 4
                                 break
 
                 # Finally, normalize probabilities so that they sum up to 1
                 probs /= np.sum(probs)
-
+                
                 disperse_location = options[self.rng.choice(len(options), p=probs)]
 
                 organism_group.pt = self.grid.move(
@@ -350,6 +400,10 @@ class Model:
             )
 
         self.agent_logger.write()
+    
+    def log_nutrient_grid(self):
+        tick = int(self.runner.schedule.tick)
+        self.nutrient_grid_logger.log_row(tick, json.dumps(self.nutrient_grid))
 
     def at_end(self):
         self.agent_logger.close()
