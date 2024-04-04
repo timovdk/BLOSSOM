@@ -10,6 +10,7 @@ from repast4py.space import DiscretePoint as dpt
 
 from typing import Tuple, Dict
 
+
 def generate_lookup_table_3d(max_r):
     """
     Generate a lookup table for the Von Neumann neighborhood for distances up to max_r.
@@ -563,7 +564,8 @@ class Model:
 def run(params: Dict):
     model = Model(MPI.COMM_WORLD, params)
     model.start()
-    
+
+
 if __name__ == "__main__":
     parser = parameters.create_args_parser()
     args = parser.parse_args()
