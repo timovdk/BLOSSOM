@@ -1,22 +1,127 @@
-from typing import Dict
+import json
 from mpi4py import MPI
-
+import networkx as nx
+from numba import jit
 import numpy as np
 
 import repast4py.context as ctx
-from repast4py import random, schedule, space, logging
+from repast4py import core, parameters, random, schedule, space, logging
 from repast4py.space import DiscretePoint as dpt
 
-import json
+from typing import Tuple, Dict
 
-import networkx as nx
-from .agent import OrganismGroup, restore_organism_group
+def generate_lookup_table_3d(max_r):
+    """
+    Generate a lookup table for the Von Neumann neighborhood for distances up to max_r.
 
-from .utils import (
-    generate_lookup_table_3d,
-    von_neumann_neighborhood_3d,
-    von_neumann_neighborhood_r1,
-)
+    Returns:
+    - List of lists: The lookup table for the Von Neumann neighborhood.
+    """
+    lookup_table = []
+    for r in range(1, max_r + 1):
+        neighborhood = []
+        for x in range(-r, r + 1):
+            for y in range(-r, r + 1):
+                for z in range(-r, r + 1):
+                    if abs(x) + abs(y) + abs(z) <= r:
+                        neighborhood.append((x, y, z))
+        lookup_table.append(neighborhood)
+    return lookup_table
+
+
+def von_neumann_neighborhood_3d(center, offsets):
+    """
+    Generate the von Neumann neighborhood for a given center point in 3D space
+    with a variable range r using a lookup table.
+
+    Args:
+    - center (tuple): The coordinates of the center point in 3D space (x, y, z).
+    - r (int): The range for the neighborhood.
+    - x_max (int): Upper bound for x coordinate.
+    - y_max (int): Upper bound for y coordinate.
+    - z_max (int): Upper bound for z coordinate.
+    - lookup_table (list of lists): Precomputed lookup table for the Von Neumann neighborhood.
+
+    Returns:
+    - List of tuples: The coordinates of the cells in the von Neumann neighborhood.
+    """
+    x_center, y_center, z_center = center
+
+    neighborhood = []
+
+    for offset in offsets:
+        new_x, new_y, new_z = (
+            x_center + offset[0],
+            y_center + offset[1],
+            z_center + offset[2],
+        )
+        if 0 <= new_x < 400 and 0 <= new_y < 400 and 0 <= new_z < 50:
+            neighborhood.append((new_x, new_y, new_z))
+
+    return neighborhood
+
+
+@jit(nopython=True)
+def von_neumann_neighborhood_r1(center):
+    x, y, z = center
+
+    neighbors = []
+    # Define offsets for Von Neumann neighborhood
+    for dx, dy, dz in [
+        (0, 0, 1),
+        (0, 0, -1),
+        (0, 1, 0),
+        (0, -1, 0),
+        (1, 0, 0),
+        (-1, 0, 0),
+    ]:
+        new_x, new_y, new_z = x + dx, y + dy, z + dz
+        if 0 <= new_x < 400 and 0 <= new_y < 400 and 0 <= new_z < 50:
+            neighbors.append((new_x, new_y, new_z))
+    return neighbors
+
+
+class OrganismGroup(core.Agent):
+    def __init__(self, local_id: int, type: int, rank: int, pt: dpt):
+        super().__init__(id=local_id, type=type, rank=rank)
+        self.pt = pt
+        self.age = 0
+        self.biomass = 0
+
+    def save(self) -> Tuple:
+        """Saves the state of this OrganismGroup as a Tuple.
+
+        Returns:
+            The saved state of this OrganismGroup.
+        """
+        return (self.uid, self.pt.coordinates, self.age, self.biomass)
+
+
+organism_group_cache = {}
+
+
+def restore_organism_group(organism_group_data: Tuple):
+    """
+    Args:
+        organism_group_data: tuple containing the data returned by OrganismGroup.save.
+        0: uid, 1: location, 2: age, 3: biomass
+    """
+    # o_g_d is a 4 element tuple: 0 is uid, 1 is location, 2 is age, 3 is biomass
+    # uid is a 3 element tuple: 0 is id, 1 is type, 2 is rank
+    uid = organism_group_data[0]
+    pt_array = organism_group_data[1]
+    pt = dpt(pt_array[0], pt_array[1], pt_array[2])
+
+    if uid in organism_group_cache:
+        organism_group = organism_group_cache[uid]
+    else:
+        organism_group = OrganismGroup(local_id=uid[0], type=uid[1], rank=uid[2], pt=pt)
+        organism_group_cache[uid] = organism_group
+
+    organism_group.pt = pt
+    organism_group.age = organism_group_data[2]
+    organism_group.biomass = organism_group_data[3]
+    return organism_group
 
 
 class Model:
@@ -348,7 +453,7 @@ class Model:
 
                     # If organism_group's biomass is smaller than max, eat part of the target
                     if organism_group.biomass < organism_parameters["biomass_max"]:
-                        organism_group += uptake
+                        organism_group.biomass += uptake
 
                         self.nutrient_grid[
                             target_coords[0], target_coords[1], target_coords[2]
@@ -453,3 +558,14 @@ class Model:
         self.organism_id += 1
         self.context.add(og)
         self.grid.move(og, pt)
+
+
+def run(params: Dict):
+    model = Model(MPI.COMM_WORLD, params)
+    model.start()
+    
+if __name__ == "__main__":
+    parser = parameters.create_args_parser()
+    args = parser.parse_args()
+    params = parameters.init_params(args.parameters_file, args.parameters)
+    run(params)
