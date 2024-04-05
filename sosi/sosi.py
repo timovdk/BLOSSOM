@@ -141,6 +141,8 @@ class Model:
         self.comm = comm
         self.context = ctx.SharedContext(comm)
         self.rank = comm.Get_rank()
+        
+        self.nutrient_grid_filename = params["nutrient_log_file"]
 
         rng = np.random.default_rng(params["nutrient.seed"])
 
@@ -217,7 +219,7 @@ class Model:
             bounds=box,
             borders=space.BorderType.Sticky,
             occupancy=space.OccupancyType.Multiple,
-            buffer_size=20,
+            buffer_size=12,
             comm=comm,
         )
         self.context.add_projection(self.grid)
@@ -231,6 +233,7 @@ class Model:
             params["agent_log_file"],
             [
                 "tick",
+                "rank",
                 "type",
                 "x",
                 "y",
@@ -536,6 +539,7 @@ class Model:
             coords = organism_group.pt.coordinates
             self.agent_logger.log_row(
                 tick,
+                organism_group.uid_rank,
                 organism_group.type,
                 coords[0],
                 coords[1],
@@ -546,7 +550,7 @@ class Model:
 
     def at_end(self):
         self.agent_logger.close()
-        np.save("output/nutrient_grid_end_.npy", self.nutrient_grid)
+        np.save(self.nutrient_grid_filename, self.nutrient_grid)
 
     def start(self):
         self.runner.execute()
