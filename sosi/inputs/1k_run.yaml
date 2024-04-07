@@ -1,6 +1,6 @@
 random.seed: 94501
 nutrient.seed: 42
-stop.at: 5000
+stop.at: 1000
 world.width: 400
 world.height: 400
 world.depth: 50

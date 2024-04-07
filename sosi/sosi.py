@@ -158,7 +158,7 @@ class Model:
         )
 
         # Assign each rank its own seed
-        random.init(rng_seed=params["random.seed"] * (self.rank + 1))
+        random.init(rng_seed=params["random.seed"])
         self.rng = random.default_rng
 
         # create the schedule

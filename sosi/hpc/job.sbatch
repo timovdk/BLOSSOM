@@ -1,7 +1,7 @@
 #!/bin/bash
 # parameters for slurm
-#SBATCH -c 1
-#SBATCH -n 2
+#SBATCH -c 2
+#SBATCH -n 4
 #SBATCH --mem=4gb
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=t.h.vanderkuil@student.utwente.nl
