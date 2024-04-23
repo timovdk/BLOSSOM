@@ -1,5 +1,7 @@
 random.seed: 94501
+nutrient.type: 0 #0 = random, 1 = uniform
 nutrient.seed: 42
+nutrient.max: 0.005
 stop.at: 5000
 world.width: 400
 world.height: 400
@@ -148,14 +150,14 @@ organism_parameters: [
     label: 'Fungivorous mites',
     count: 200,
     type: 9,
-    rate_reproduction: 0.17,
-    rate_competition: 0.415,
-    rate_dispersal: 0.415,
+    rate_reproduction: 0.161,
+    rate_competition: 0.408,
+    rate_dispersal: 0.431,
     range_dispersal: 9,
     age_reproduction: 18,
     age_max: 34,
-    biomass_reproduction: 0.03,
-    biomass_max: 0.06,
+    biomass_reproduction: 0.030756,
+    biomass_max: 0.064,
     mu_max: 0.015,
     k: 0.015 
 },
@@ -169,7 +171,7 @@ organism_parameters: [
     range_dispersal: 11,
     age_reproduction: 16,
     age_max: 50,
-    biomass_reproduction: 0.025,
+    biomass_reproduction: 0.0249,
     biomass_max: 0.1,
     mu_max: 0.025,
     k: 0.025    
@@ -178,13 +180,13 @@ organism_parameters: [
     label: 'Collembolans',
     count: 200,
     type: 11,
-    rate_reproduction: 0.165,
-    rate_competition: 0.44,
-    rate_dispersal: 0.395,
+    rate_reproduction: 0.18,
+    rate_competition: 0.43,
+    rate_dispersal: 0.39,
     range_dispersal: 12,
     age_reproduction: 10,
     age_max: 40,
-    biomass_reproduction: 0.035,
+    biomass_reproduction: 0.03571978,
     biomass_max: 0.15,
     mu_max: 0.025,
     k: 0.025    

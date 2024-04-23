@@ -23,7 +23,9 @@ random.seed: 94501
 #random.seed: 82497695
 #random.seed: 63270456
 #random.seed: 33400705
+nutrient.type: 0 #0 = random, 1 = uniform
 nutrient.seed: 42
+nutrient.max: 0.005
 stop.at: 1000
 world.width: 400
 world.height: 400
