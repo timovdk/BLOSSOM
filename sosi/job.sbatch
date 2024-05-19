@@ -1,20 +1,20 @@
 #!/bin/bash
 # parameters for slurm
-#SBATCH -c 2
+#SBATCH -c 1
 #SBATCH -n 4
-#SBATCH --mem=4gb
+#SBATCH --mem=6gb
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=t.h.vanderkuil@student.utwente.nl
-#SBATCH --time=1:00:00
- 
+#SBATCH --time=8:00:00
+
 # Create a directory for this job on the node
 cd /local
 mkdir ${SLURM_JOBID}
 cd ${SLURM_JOBID}
 # Copy input and executable to the node
-cp -r ${SLURM_SUBMIT_DIR}/* .
- 
-# load all modules needed 
+cp -f -r ${SLURM_SUBMIT_DIR}/* .
+
+# load all modules needed
 module load openmpi/4.1.5
 module load python/3.10.7
 
@@ -30,7 +30,7 @@ echo "Starting worker: "
 
 # Run the job
 mpirun python3 sosi.py 100_run.yaml
- 
+
 # Copy output back to the master, comment with # if not used
 mv outputs ${SLURM_SUBMIT_DIR}
 

@@ -1,195 +1,129 @@
-random.seed: 94501
+#random.seed: 47
+random.seed: 397489
 nutrient.type: 1 #0 = random, 1 = uniform
 nutrient.seed: 42
-nutrient.max: 0.005
-stop.at: 400
+nutrient.max: 0.0002
+stop.at: 500
 world.width: 400
 world.height: 400
 world.depth: 50
 agent_log_file: 'outputs/agent_log.csv'
 nutrient_log_file: 'outputs/nutrient_grid_end_.npy'
-co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}, {"id": 9}, {"id": 10}, {"id": 11}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 4}, {"weight": 0.6148356427539814, "source": 0, "target": 7}, {"weight": 0.7306576990838498, "source": 1, "target": 2}, {"weight": 0.9003900420385831, "source": 1, "target": 6}, {"weight": -0.638579754693958, "source": 3, "target": 4}, {"weight": -0.27796656418881527, "source": 3, "target": 9}, {"weight": 0.46123412849139406, "source": 4, "target": 5}, {"weight": 0.6068144174853789, "source": 5, "target": 9}, {"weight": 0.5112680070896285, "source": 5, "target": 10}, {"weight": 0.42525572507758125, "source": 6, "target": 10}]}'
-#trophic_network: '{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"organism": "bacteria", "id": 0}, {"organism": "fungi", "id": 1}, {"organism": "mycorrhizae", "id": 2}, {"organism": "amoebae", "id": 3}, {"organism": "flagellates", "id": 4}, {"organism": "root-feeding nematodes", "id": 5}, {"organism": "bacterivorous nematodes", "id": 6}, {"organism": "fungivorous nematodes", "id": 7}, {"organism": "omnivorous nematodes", "id": 8}, {"organism": "fungivorous mites", "id": 9}, {"organism": "omnivorous mites", "id": 10}, {"organism": "collembolans", "id": 11}], "links": [{"weight": -0.5, "source": 0, "target": 6}, {"weight": -0.5, "source": 0, "target": 4}, {"weight": -0.5, "source": 0, "target": 8}, {"weight": -0.5, "source": 0, "target": 3}, {"weight": -0.5, "source": 1, "target": 7}, {"weight": -0.5, "source": 1, "target": 9}, {"weight": -0.5, "source": 1, "target": 11}, {"weight": -0.5, "source": 2, "target": 7}, {"weight": -0.5, "source": 2, "target": 9}, {"weight": -0.5, "source": 2, "target": 11}, {"weight": -0.5, "source": 3, "target": 8}, {"weight": -0.5, "source": 4, "target": 8}, {"weight": -0.5, "source": 4, "target": 3}, {"weight": -0.5, "source": 5, "target": 8}, {"weight": -0.5, "source": 5, "target": 10}, {"weight": -0.5, "source": 6, "target": 8}, {"weight": -0.5, "source": 6, "target": 10}, {"weight": -0.5, "source": 7, "target": 8}, {"weight": -0.5, "source": 7, "target": 10}, {"weight": -0.5, "source": 8, "target": 10}, {"weight": -0.5, "source": 9, "target": 10}, {"weight": -0.5, "source": 11, "target": 10}]}'
-trophic_network: '{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"organism": "bacteria", "id": 0}, {"organism": "fungi", "id": 1}, {"organism": "mycorrhizae", "id": 2}, {"organism": "amoebae", "id": 3}, {"organism": "flagellates", "id": 4}, {"organism": "root-feeding nematodes", "id": 5}, {"organism": "bacterivorous nematodes", "id": 6}, {"organism": "fungivorous nematodes", "id": 7}, {"organism": "omnivorous nematodes", "id": 8}, {"organism": "fungivorous mites", "id": 9}, {"organism": "omnivorous mites", "id": 10}, {"organism": "collembolans", "id": 11}, {"organism": "som", "id": 12}], "links": [{"weight": -0.5, "source": 0, "target": 6}, {"weight": -0.5, "source": 0, "target": 4}, {"weight": -0.5, "source": 0, "target": 8}, {"weight": -0.5, "source": 0, "target": 3}, {"weight": -0.5, "source": 1, "target": 7}, {"weight": -0.5, "source": 1, "target": 9}, {"weight": -0.5, "source": 1, "target": 11}, {"weight": -0.5, "source": 2, "target": 7}, {"weight": -0.5, "source": 2, "target": 9}, {"weight": -0.5, "source": 2, "target": 11}, {"weight": -0.5, "source": 3, "target": 8}, {"weight": -0.5, "source": 4, "target": 8}, {"weight": -0.5, "source": 4, "target": 3}, {"weight": -0.5, "source": 5, "target": 8}, {"weight": -0.5, "source": 5, "target": 10}, {"weight": -0.5, "source": 6, "target": 8}, {"weight": -0.5, "source": 6, "target": 10}, {"weight": -0.5, "source": 7, "target": 8}, {"weight": -0.5, "source": 7, "target": 10}, {"weight": -0.5, "source": 8, "target": 10}, {"weight": -0.5, "source": 9, "target": 10}, {"weight": -0.5, "source": 11, "target": 10}, {"weight": -0.5, "source": 12, "target": 0}, {"weight": -0.5, "source": 12, "target": 1}, {"weight": -0.5, "source": 12, "target": 2}, {"weight": -0.5, "source": 12, "target": 5}]}'
+co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 3}, {"weight": 0.6148356427539814, "source": 0, "target": 4}, {"weight": 0.7306576990838498, "source": 1, "target": 2}, {"weight": 0.9003900420385831, "source": 1, "target": 5}, {"weight": -0.638579754693958, "source": 1, "target": 7}, {"weight": -0.27796656418881527, "source": 2, "target": 7}, {"weight": 0.46123412849139406, "source": 3, "target": 4}, {"weight": 0.6068144174853789, "source": 5, "target": 8}]}'
+#co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 2}, {"weight": 0.6148356427539814, "source": 0, "target": 8}, {"weight": 0.7306576990838498, "source": 2, "target": 4}, {"weight": 0.9003900420385831, "source": 2, "target": 8}, {"weight": -0.638579754693958, "source": 3, "target": 6}, {"weight": -0.27796656418881527, "source": 3, "target": 8}, {"weight": 0.46123412849139406, "source": 4, "target": 5}, {"weight": 0.6068144174853789, "source": 7, "target": 8}]}'
+#co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 1, "target": 4}, {"weight": 0.6148356427539814, "source": 1, "target": 5}, {"weight": 0.7306576990838498, "source": 1, "target": 6}, {"weight": 0.9003900420385831, "source": 2, "target": 5}, {"weight": -0.638579754693958, "source": 2, "target": 6}, {"weight": -0.27796656418881527, "source": 2, "target": 8}, {"weight": 0.46123412849139406, "source": 3, "target": 5}, {"weight": 0.6068144174853789, "source": 4, "target": 5}, {"weight": 0.5112680070896285, "source": 4, "target": 6}, {"weight": 0.42525572507758125, "source": 4, "target": 7}, {"weight": 0.4601658168250095, "source": 4, "target": 8}, {"weight": 0.4943223393958548, "source": 5, "target": 6}]}'
+#co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 1}, {"weight": 0.6148356427539814, "source": 0, "target": 3}, {"weight": 0.7306576990838498, "source": 0, "target": 5}, {"weight": 0.9003900420385831, "source": 0, "target": 8}, {"weight": -0.638579754693958, "source": 1, "target": 3}, {"weight": -0.27796656418881527, "source": 1, "target": 5}, {"weight": 0.46123412849139406, "source": 1, "target": 6}, {"weight": 0.6068144174853789, "source": 3, "target": 7}, {"weight": 0.5112680070896285, "source": 3, "target": 8}, {"weight": 0.42525572507758125, "source": 4, "target": 5}, {"weight": 0.4601658168250095, "source": 4, "target": 6}, {"weight": 0.4943223393958548, "source": 4, "target": 7}, {"weight": -0.14671525430854027, "source": 4, "target": 8}]}'
+#co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 1}, {"weight": 0.6148356427539814, "source": 0, "target": 3}, {"weight": 0.7306576990838498, "source": 0, "target": 4}, {"weight": 0.9003900420385831, "source": 0, "target": 6}, {"weight": -0.638579754693958, "source": 0, "target": 7}, {"weight": -0.27796656418881527, "source": 1, "target": 3}, {"weight": 0.46123412849139406, "source": 1, "target": 4}, {"weight": 0.6068144174853789, "source": 1, "target": 6}, {"weight": 0.5112680070896285, "source": 1, "target": 7}, {"weight": 0.42525572507758125, "source": 1, "target": 8}, {"weight": 0.4601658168250095, "source": 2, "target": 5}, {"weight": 0.4943223393958548, "source": 2, "target": 6}, {"weight": -0.14671525430854027, "source": 2, "target": 8}, {"weight": -0.4038872117981791, "source": 3, "target": 4}, {"weight": 0.5176903249517476, "source": 3, "target": 6}, {"weight": 0.7534244447856359, "source": 3, "target": 7}, {"weight": 0.5244768288592718, "source": 4, "target": 7}, {"weight": 0.7363358287149884, "source": 4, "target": 8}, {"weight": 0.631262017598583, "source": 5, "target": 6}, {"weight": 0.13566419265027413, "source": 5, "target": 8}, {"weight": 0.7444351489453024, "source": 6, "target": 7}, {"weight": -0.4320948133020824, "source": 7, "target": 8}]}'
+#co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 1}, {"weight": 0.6148356427539814, "source": 0, "target": 3}, {"weight": 0.7306576990838498, "source": 0, "target": 4}, {"weight": 0.9003900420385831, "source": 0, "target": 6}, {"weight": -0.638579754693958, "source": 0, "target": 7}, {"weight": -0.27796656418881527, "source": 0, "target": 8}, {"weight": 0.46123412849139406, "source": 1, "target": 2}, {"weight": 0.6068144174853789, "source": 1, "target": 4}, {"weight": 0.5112680070896285, "source": 1, "target": 5}, {"weight": 0.42525572507758125, "source": 1, "target": 6}, {"weight": 0.4601658168250095, "source": 1, "target": 7}, {"weight": 0.4943223393958548, "source": 2, "target": 4}, {"weight": -0.14671525430854027, "source": 2, "target": 5}, {"weight": -0.4038872117981791, "source": 3, "target": 4}, {"weight": 0.5176903249517476, "source": 3, "target": 5}, {"weight": 0.7534244447856359, "source": 3, "target": 6}, {"weight": 0.5244768288592718, "source": 3, "target": 8}, {"weight": 0.7363358287149884, "source": 4, "target": 7}, {"weight": 0.631262017598583, "source": 4, "target": 8}, {"weight": 0.13566419265027413, "source": 5, "target": 7}, {"weight": 0.7444351489453024, "source": 5, "target": 8}, {"weight": -0.4320948133020824, "source": 6, "target": 8}, {"weight": -0.581091373256546, "source": 7, "target": 8}]}'
+#co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 5}, {"weight": 0.6148356427539814, "source": 0, "target": 8}, {"weight": 0.7306576990838498, "source": 1, "target": 3}, {"weight": 0.9003900420385831, "source": 1, "target": 4}, {"weight": -0.638579754693958, "source": 1, "target": 6}, {"weight": -0.27796656418881527, "source": 2, "target": 4}, {"weight": 0.46123412849139406, "source": 2, "target": 7}, {"weight": 0.6068144174853789, "source": 2, "target": 8}, {"weight": 0.5112680070896285, "source": 3, "target": 4}, {"weight": 0.42525572507758125, "source": 3, "target": 6}, {"weight": 0.4601658168250095, "source": 3, "target": 7}, {"weight": 0.4943223393958548, "source": 3, "target": 8}, {"weight": -0.14671525430854027, "source": 4, "target": 5}, {"weight": -0.4038872117981791, "source": 4, "target": 6}, {"weight": 0.5176903249517476, "source": 5, "target": 7}, {"weight": 0.7534244447856359, "source": 5, "target": 8}]}'
+trophic_network: '{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"organism": "bacteria", "id": 0}, {"organism": "fungi", "id": 1}, {"organism": "root-feeding nematodes", "id": 2}, {"organism": "bacterivorous nematodes", "id": 3}, {"organism": "fungivorous nematodes", "id": 4}, {"organism": "omnivorous nematodes", "id": 5}, {"organism": "fungivorous mites", "id": 6}, {"organism": "omnivorous mites", "id": 7}, {"organism": "collembolans", "id": 8}, {"organism": "som", "id": 9}], "links": [{"source": 0, "target": 3}, {"source": 0, "target": 5}, {"source": 1, "target": 4}, {"source": 1, "target": 6}, {"source": 1, "target": 8}, {"source": 2, "target": 5}, {"source": 2, "target": 7}, {"source": 3, "target": 5}, {"source": 3, "target": 7}, {"source": 4, "target": 5}, {"source": 4, "target": 7}, {"source": 5, "target": 7}, {"source": 6, "target": 7}, {"source": 8, "target": 7}, {"source": 9, "target": 0}, {"source": 9, "target": 1}, {"source": 9, "target": 2}]}'
 organism_parameters: [
   {
     label: 'Bacteria',
     count: 4000,
     type: 0,
-    rate_reproduction: 0.506,
-    rate_competition: 0,
-    rate_dispersal: 0.494,
     range_dispersal: 2,
-    age_reproduction: 0,
-    age_max: 3,
-    biomass_reproduction: 0.000076,
-    biomass_max: 0.00015,
-    mu_max: 0.00015,
-    k: 0.000075   
+    age_reproduction: 1,
+    age_max: 2,
+    biomass_reproduction: 0.00015,
+    biomass_max: 0.00020,
+    mu_max: 0.00020,
+    k: 0.00018,
 },
 {
     label: 'Fungi',
-    count: 4000,
+    count: 3500,
     type: 1,
-    rate_reproduction: 0.502,
-    rate_competition: 0.498,
-    rate_dispersal: 0,
     range_dispersal: 0,
     age_reproduction: 5,
-    age_max: 8,
-    biomass_reproduction: 0.000008,
-    biomass_max: 0.0002,
-    mu_max: 0.0002,
-    k: 0.000008   
-},
-{
-    label: 'Mycorrhizae',
-    count: 4000,
-    type: 2,
-    rate_reproduction: 0.334,
-    rate_competition: 0.666,
-    rate_dispersal: 0,
-    range_dispersal: 0,
-    age_reproduction: 4,
-    age_max: 8,
-    biomass_reproduction: 0.0000069,
-    biomass_max: 0.00015,
-    mu_max: 0.00015,
-    k: 0.0000069    
-},
-{
-    label: 'Amoebae',
-    count: 500,
-    type: 3,
-    rate_reproduction: 0.22,
-    rate_competition: 0.39,
-    rate_dispersal: 0.39,
-    range_dispersal: 8,
-    age_reproduction: 14,
-    age_max: 60,
-    biomass_reproduction: 0.0004,
-    biomass_max: 0.02,
-    mu_max: 0.02,
-    k: 0.01    
-},
-{
-    label: 'Flagellates',
-    count: 500,
-    type: 4,
-    rate_reproduction: 0.143,
-    rate_competition: 0.397,
-    rate_dispersal: 0.46,
-    range_dispersal: 7,
-    age_reproduction: 10,
-    age_max: 45,
-    biomass_reproduction: 0.00002,
-    biomass_max: 0.003,
-    mu_max: 0.0003,
-    k: 0.00015    
+    age_max: 40,
+    biomass_reproduction: 0.0000046,
+    biomass_max: 0.0000046,
+    mu_max: 0.0000046,
+    k: 0.002,
 },
 {
     label: 'Root-feeding Nematodes',
     count: 400,
-    type: 5,
-    rate_reproduction: 0.2,
-    rate_competition: 0,
-    rate_dispersal: 0.8,
+    type: 2,
     range_dispersal: 3,
     age_reproduction: 10,
-    age_max: 16,
-    biomass_reproduction: 0.0075,
-    biomass_max: 0.015,
-    mu_max: 0.015,
-    k: 0.0075    
+    age_max: 26,
+    biomass_reproduction: 0.00028,
+    biomass_max: 0.0003,
+    mu_max: 0.0003,
+    k: 0.0016,
 },
 {
     label: 'Bacterivorous Nematodes',
     count: 750,
-    type: 6,
-    rate_reproduction: 0.2,
-    rate_competition: 0.4,
-    rate_dispersal: 0.4,
-    range_dispersal: 3,
-    age_reproduction: 6,
-    age_max: 75,
-    biomass_reproduction: 0.0003,
-    biomass_max: 0.008,
-    mu_max: 0.0008,
-    k: 0.00015    
+    type: 3,
+    range_dispersal: 8,
+    age_reproduction: 8,
+    age_max: 40,
+    biomass_reproduction: 0.00026,
+    biomass_max: 0.003,
+    mu_max: 0.003,
+    k: 0.00028
 },
 {
     label: 'Fungivorous Nematodes',
     count: 400,
-    type: 7,
-    rate_reproduction: 0.205,
-    rate_competition: 0.4,
-    rate_dispersal: 0.395,
-    range_dispersal: 5,
+    type: 4,
+    range_dispersal: 8,
     age_reproduction: 14,
-    age_max: 80,
-    biomass_reproduction: 0.00055,
-    biomass_max: 0.15,
-    mu_max: 0.0075,
-    k: 0.0055    
+    age_max: 75,
+    biomass_reproduction: 0.0000075,
+    biomass_max: 0.0025,
+    mu_max: 0.0025,
+    k: 0.00006,
 },
 {
     label: 'Omnivorous Nematodes',
     count: 500,
-    type: 8,
-    rate_reproduction: 0.1,
-    rate_competition: 0.55,
-    rate_dispersal: 0.35,
+    type: 5,
     range_dispersal: 10,
     age_reproduction: 24,
-    age_max: 95,
-    biomass_reproduction: 0.004,
-    biomass_max: 0.24,
-    mu_max: 0.08,
-    k: 0.001   
+    age_max: 60,
+    biomass_reproduction: 0.00035,
+    biomass_max: 0.001,
+    mu_max: 0.001,
+    k: 0.002,
 },
 {
     label: 'Fungivorous mites',
     count: 200,
-    type: 9,
-    rate_reproduction: 0.161,
-    rate_competition: 0.408,
-    rate_dispersal: 0.431,
-    range_dispersal: 9,
+    type: 6,
+    range_dispersal: 12,
     age_reproduction: 18,
-    age_max: 155,
-    biomass_reproduction: 0.00032,
-    biomass_max: 0.45,
-    mu_max: 0.015,
-    k: 0.015 
+    age_max: 105,
+    biomass_reproduction: 0.000015,
+    biomass_max: 0.001,
+    mu_max: 0.001,
+    k: 0.00008,
 },
 {
     label: 'Omnivorous mites',
     count: 200,
-    type: 10,
-    rate_reproduction: 0.1,
-    rate_competition: 0.5,
-    rate_dispersal: 0.4,
-    range_dispersal: 11,
+    type: 7,
+    range_dispersal: 12,
     age_reproduction: 16,
     age_max: 135,
-    biomass_reproduction: 0.0015,
-    biomass_max: 0.5,
+    biomass_reproduction: 0.0009,
+    biomass_max: 0.025,
     mu_max: 0.025,
-    k: 0.025    
+    k: 0.0025,
 },
 {
     label: 'Collembolans',
     count: 200,
-    type: 11,
-    rate_reproduction: 0.18,
-    rate_competition: 0.43,
-    rate_dispersal: 0.39,
-    range_dispersal: 12,
+    type: 8,
+    range_dispersal: 8,
     age_reproduction: 10,
-    age_max: 165,
-    biomass_reproduction: 0.00085,
-    biomass_max: 0.15,
-    mu_max: 0.025,
-    k: 0.025    
-}
+    age_max: 67,
+    biomass_reproduction: 0.000009,
+    biomass_max: 0.000025,
+    mu_max: 0.000025,
+    k: 0.00001,
+},
 ]
