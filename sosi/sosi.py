@@ -59,11 +59,11 @@ def von_neumann_neighborhood_r1(center):
 
 
 class OrganismGroup(core.Agent):
-    def __init__(self, local_id: int, type: int, rank: int, pt: dpt):
+    def __init__(self, local_id: int, type: int, rank: int, pt: dpt, biomass):
         super().__init__(id=local_id, type=type, rank=rank)
         self.pt = pt
         self.age = 0
-        self.biomass = 0
+        self.biomass = biomass
 
     def save(self) -> Tuple:
         """Saves the state of this OrganismGroup as a Tuple.
@@ -92,7 +92,13 @@ def restore_organism_group(organism_group_data: Tuple):
     if uid in organism_group_cache:
         organism_group = organism_group_cache[uid]
     else:
-        organism_group = OrganismGroup(local_id=uid[0], type=uid[1], rank=uid[2], pt=pt)
+        organism_group = OrganismGroup(
+            local_id=uid[0],
+            type=uid[1],
+            rank=uid[2],
+            pt=pt,
+            biomass=organism_group_data[3],
+        )
         organism_group_cache[uid] = organism_group
 
     organism_group.pt = pt
@@ -232,14 +238,18 @@ class Model:
             self.positive_co_occurrence.append(pos_ngh)
 
     def trophic_net_pre_processing(self):
-        # Create a list of lists of connected nodes for each node. i.e. food_dependency[0] will return a list of incoming connected nodes for node 0
-        self.food_dependency = []
+        # Create a list of lists of connected nodes for each node. i.e. preys[0] will return a list of incoming connected nodes for node 0
+        self.preys = []
         # Iterate over all nodes
         for node in self.trophic_net.nodes():
             # Get the nodes that have edges pointing to the current node
-            self.food_dependency.append(
-                [n for n in self.trophic_net.predecessors(node)]
-            )
+            self.preys.append([n for n in self.trophic_net.predecessors(node)])
+        # Create a list of lists of connected nodes for each node. i.e. predators[0] will return a list of outgoing connected nodes for node 0
+        self.predators = []
+        # Iterate over all nodes
+        for node in self.trophic_net.nodes():
+            # Get the nodes that have edges pointing to the current node
+            self.predators.append([n for n in self.trophic_net.predecessors(node)])
 
         # SOM is always the last id in the trophic net
         self.som_id = len(self.trophic_net.nodes()) - 1
@@ -334,7 +344,11 @@ class Model:
         loc = nghs[self.rng.choice(len(nghs))]
         # get a location based on the co_occ_loc and offset, and add an agent here
         pt = dpt(loc[0], loc[1], loc[2])
-        self.add_agent(type_to_add, pt)
+        self.add_agent(
+            type_to_add,
+            pt,
+            self.organism_parameters[type_to_add]["biomass_reproduction"],
+        )
 
     def negative_placement(self, type_to_add, co_occurring_ogs):
         loc_found = False
@@ -350,12 +364,20 @@ class Model:
                     loc_found = True
 
         # Add the agent at this location
-        self.add_agent(type_to_add, pt)
+        self.add_agent(
+            type_to_add,
+            pt,
+            self.organism_parameters[type_to_add]["biomass_reproduction"],
+        )
 
     def random_placement(self, type_to_add):
         # get a random x,y,z location in the grid and add an agent here
         pt = self.grid.get_random_local_pt(self.rng)
-        self.add_agent(type_to_add, pt)
+        self.add_agent(
+            type_to_add,
+            pt,
+            self.organism_parameters[type_to_add]["biomass_reproduction"],
+        )
 
     def step(self):
         ogs_to_add = []
@@ -377,12 +399,12 @@ class Model:
                     coords,
                     organism_parameters,
                     organism_group.biomass >= organism_parameters["biomass_max"],
-                    self.som_id in self.food_dependency[organism_group.type],
+                    self.som_id in self.preys[organism_group.type],
                 )
 
             # If the agent eats som, the biomass is smaller than max biomass, and there is som, handle uptake
             if (
-                self.som_id in self.food_dependency[organism_group.type]
+                self.som_id in self.preys[organism_group.type]
                 and organism_group.biomass < organism_parameters["biomass_max"]
                 and self.nutrient_grid[coords[0], coords[1], coords[2]]
             ):
@@ -399,7 +421,7 @@ class Model:
                 )
 
             # Else, if the agent does not eat som, run competition submodel
-            elif self.som_id not in self.food_dependency[organism_group.type]:
+            elif self.som_id not in self.preys[organism_group.type]:
                 ogs_to_kill.append(
                     self.compete(
                         organism_group,
@@ -448,7 +470,7 @@ class Model:
                 pt_array = nghs[self.rng.choice(len(nghs))]
 
             pt = dpt(pt_array[0], pt_array[1], pt_array[2])
-            self.add_agent(og[0][1], pt)
+            self.add_agent(og[0][1], pt, og[3])
 
         # loop for removing organism groups that were added to the kill list
         for uid in list(set(ogs_to_kill)):
@@ -463,7 +485,7 @@ class Model:
 
     def compete(self, organism_group, coords, mu_max, k):
 
-        food_types = self.food_dependency[organism_group.type]
+        food_types = self.preys[organism_group.type]
         food_opts = []
         food_probs = []
 
@@ -497,7 +519,8 @@ class Model:
         self, organism_group, coords, organism_parameters, fully_satisfied, som_feeder
     ):
         disperse_location = (coords[0], coords[1], coords[2])
-        food_types = self.food_dependency[organism_group.type]
+        preys = self.preys[organism_group.type]
+        predators = self.predators[organism_group.type]
 
         # for each range step, run the search code (i.e. range=5, search 5 times for food)
         # for _ in range(organism_parameters["range_dispersal"]):
@@ -508,14 +531,31 @@ class Model:
         if not fully_satisfied:
             # now check which probability should be boosted (much food, co_occ, or target)
             for i, opt in enumerate(options):
-                # If food availibility is higher than max feeding rate
-                if som_feeder and self.nutrient_grid[opt[0], opt[1], opt[2]] == 0:
-                    probs[i] = 0.0000001
-                else:
-                    # if any obj type is in food_types, add 0.5
+                # If som feeder, first check whether food availability is not 0, else check whether there is no predator
+                if som_feeder:
+
+                    # predator check
                     for obj in self.grid.get_agents(dpt(opt[0], opt[1], opt[2])):
-                        if obj.type in food_types:
+                        if obj.type in predators:
+                            probs[i] = 0.000001
+                            break
+
+                    # food check
+                    if self.nutrient_grid[opt[0], opt[1], opt[2]] == 0:
+                        probs[i] = 0.000001
+                    elif (
+                        self.nutrient_grid[opt[0], opt[1], opt[2]]
+                        >= organism_parameters["biomass_max"]
+                    ):
+                        probs[i] = 1
+                else:
+                    # if any obj type is in preys, add 1 to probability, but if there is also a predator, set probability low and break the loop
+                    for obj in self.grid.get_agents(dpt(opt[0], opt[1], opt[2])):
+                        if obj.type in preys:
                             probs[i] += 1
+                        elif obj.type in predators:
+                            probs[i] = 0.000001
+                            break
 
         # Finally, normalize probabilities so that they sum up to 1
         probs /= np.sum(probs)
@@ -552,8 +592,8 @@ class Model:
     def remove_agent(self, agent):
         self.context.remove(agent)
 
-    def add_agent(self, type, pt):
-        og = OrganismGroup(self.organism_id, type, self.rank, pt)
+    def add_agent(self, type, pt, biomass):
+        og = OrganismGroup(self.organism_id, type, self.rank, pt, biomass)
         self.organism_id += 1
         self.context.add(og)
         self.grid.move(og, pt)
