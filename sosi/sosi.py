@@ -10,7 +10,6 @@ from repast4py.space import DiscretePoint as dpt
 
 from typing import Tuple, Dict
 
-
 @njit
 def precompute_offsets(r):
     offsets = []
@@ -31,7 +30,7 @@ def von_neumann_neighborhood_3d(x, y, z, r):
     for i in range(num_offsets):
         dx, dy, dz = offsets[i]
         nx, ny, nz = x + dx, y + dy, z + dz
-        if 0 <= nx < 399 and 0 <= ny < 399 and 0 <= nz < 49:
+        if 0 <= nx < 400 and 0 <= ny < 400 and 0 <= nz < 50:
             neighbors.append((nx, ny, nz))
 
     return neighbors
@@ -180,7 +179,6 @@ class Model:
             params["agent_log_file"],
             [
                 "tick",
-                "rank",
                 "type",
                 "x",
                 "y",
@@ -248,8 +246,8 @@ class Model:
         self.predators = []
         # Iterate over all nodes
         for node in self.trophic_net.nodes():
-            # Get the nodes that have edges pointing to the current node
-            self.predators.append([n for n in self.trophic_net.predecessors(node)])
+            # Get the nodes that have edges going out of the current node
+            self.predators.append([n for n in self.trophic_net.successors(node)])
 
         # SOM is always the last id in the trophic net
         self.som_id = len(self.trophic_net.nodes()) - 1
@@ -401,7 +399,7 @@ class Model:
                     organism_group.biomass >= organism_parameters["biomass_max"],
                     self.som_id in self.preys[organism_group.type],
                 )
-
+            
             # If the agent eats som, the biomass is smaller than max biomass, and there is som, handle uptake
             if (
                 self.som_id in self.preys[organism_group.type]
@@ -439,7 +437,7 @@ class Model:
             ):
                 organism_group.biomass /= 2
                 ogs_to_add.append(self.reproduce(organism_group))
-
+                
         # Loop through all organisms and determine whether they survive for next step
         for organism_group in self.context.agents():
             coords = organism_group.pt.coordinates
@@ -527,7 +525,8 @@ class Model:
         options = von_neumann_neighborhood_3d(
             coords[0], coords[1], coords[2], organism_parameters["range_dispersal"]
         )
-        probs = np.full(len(options), 0.001)
+        
+        probs = np.full(len(options), 0.01)
         if not fully_satisfied:
             # now check which probability should be boosted (much food, co_occ, or target)
             for i, opt in enumerate(options):
@@ -541,13 +540,7 @@ class Model:
                             break
 
                     # food check
-                    if self.nutrient_grid[opt[0], opt[1], opt[2]] == 0:
-                        probs[i] = 0.000001
-                    elif (
-                        self.nutrient_grid[opt[0], opt[1], opt[2]]
-                        >= organism_parameters["biomass_max"]
-                    ):
-                        probs[i] = 1
+                    probs[i] = max(0.000001, self.nutrient_grid[opt[0], opt[1], opt[2]])
                 else:
                     # if any obj type is in preys, add 1 to probability, but if there is also a predator, set probability low and break the loop
                     for obj in self.grid.get_agents(dpt(opt[0], opt[1], opt[2])):
@@ -556,7 +549,7 @@ class Model:
                         elif obj.type in predators:
                             probs[i] = 0.000001
                             break
-
+            
         # Finally, normalize probabilities so that they sum up to 1
         probs /= np.sum(probs)
         disperse_location = options[self.rng.choice(len(options), p=probs)]
@@ -573,7 +566,6 @@ class Model:
             coords = organism_group.pt.coordinates
             self.agent_logger.log_row(
                 tick,
-                organism_group.uid_rank,
                 organism_group.type,
                 coords[0],
                 coords[1],
