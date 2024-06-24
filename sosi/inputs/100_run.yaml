@@ -4,7 +4,7 @@ random.seed: 397489
 nutrient.type: 1 #0 = random, 1 = uniform
 nutrient.seed: 42
 nutrient.max: 0.12
-stop.at: 50
+stop.at: 100
 world.width: 200
 world.height: 200
 world.depth: 25
@@ -28,10 +28,10 @@ organism_parameters: [
     range_dispersal: 1,
     age_reproduction: 1,
     age_max: 2,
-    biomass_reproduction: 0.07,
-    biomass_max: 0.1,
-    mu_max: 0.087,
-    k: 0.155,
+    biomass_reproduction: 0.08,
+    biomass_max: 0.08,
+    mu_max: 0.08,
+    k: 0.081,
 },
 {
     label: 'Fungi',
@@ -43,10 +43,10 @@ organism_parameters: [
     age_reproduction: 2,
     age_max: 15,
     #age_max: 1,
-    biomass_reproduction: 0.009,
+    biomass_reproduction: 0.012,
     biomass_max: 0.012,
     mu_max: 0.004,
-    k: 0.009,
+    k: 0.049,
 },
 {
     label: 'Root-feeding Nematodes',
@@ -61,7 +61,7 @@ organism_parameters: [
     biomass_reproduction: 0.19,
     biomass_max: 0.25,
     mu_max: 0.05,
-    k: 0.3,
+    k: 0.35,
 },
 {
     label: 'Bacterivorous Nematodes',
@@ -75,8 +75,8 @@ organism_parameters: [
     #age_max: 1,    
     biomass_reproduction: 0.1,
     biomass_max: 0.15,
-    mu_max: 0.01,
-    k: 0.085
+    mu_max: 0.02,
+    k: 0.08
 },
 {
     label: 'Fungivorous Nematodes',
@@ -136,7 +136,7 @@ organism_parameters: [
     biomass_reproduction: 0.4,
     biomass_max: 0.42,
     mu_max: 0.005,
-    k: 0.6,
+    k: 0.4,
 },
 {
     label: 'Collembolans',
@@ -148,9 +148,9 @@ organism_parameters: [
     age_reproduction: 15,
     age_max: 60,
     #age_max: 1,
-    biomass_reproduction: 0.25,
-    biomass_max: 0.28,
+    biomass_reproduction: 0.2,
+    biomass_max: 0.22,
     mu_max: 0.1,
-    k: 0.04,
+    k: 0.4,
 },
 ]
