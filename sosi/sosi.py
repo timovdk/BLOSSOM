@@ -10,7 +10,10 @@ from repast4py.space import DiscretePoint as dpt
 
 from typing import Tuple, Dict
 
-@njit
+from collections import Counter
+from itertools import repeat
+
+@njit()
 def precompute_offsets(r):
     offsets = []
     for dx in range(-r, r + 1):
@@ -30,7 +33,7 @@ def von_neumann_neighborhood_3d(x, y, z, r):
     for i in range(num_offsets):
         dx, dy, dz = offsets[i]
         nx, ny, nz = x + dx, y + dy, z + dz
-        if 0 <= nx < 400 and 0 <= ny < 400 and 0 <= nz < 50:
+        if 0 <= nx < 200 and 0 <= ny < 200 and 0 <= nz < 25:
             neighbors.append((nx, ny, nz))
 
     return neighbors
@@ -49,10 +52,9 @@ def von_neumann_neighborhood_r1(center):
         (0, -1, 0),
         (1, 0, 0),
         (-1, 0, 0),
-        (0, 0, 0),
     ]:
         new_x, new_y, new_z = x + dx, y + dy, z + dz
-        if 0 <= new_x < 400 and 0 <= new_y < 400 and 0 <= new_z < 50:
+        if 0 <= new_x < 200 and 0 <= new_y < 200 and 0 <= new_z < 25:
             neighbors.append((new_x, new_y, new_z))
     return neighbors
 
@@ -307,8 +309,10 @@ class Model:
     def informed_placement(
         self, type_to_add, co_occurring_types_added, co_occurring_agents, weights
     ):
-        # Randomly pick a co occurring type
-        co_occ_og_id = self.rng.choice(co_occurring_types_added)
+        co_occ_probs = [abs(weights.get(id)["weight"]) for id in co_occurring_types_added]
+        co_occ_probs /= np.sum(co_occ_probs)
+        # Randomly pick a co occurring type based on the edge weight
+        co_occ_og_id = self.rng.choice(co_occurring_types_added, p=co_occ_probs)
         # Get all placed agents of this type
         co_occurring_ogs = co_occurring_agents.get(co_occ_og_id)
 
@@ -377,7 +381,26 @@ class Model:
             self.organism_parameters[type_to_add]["biomass_reproduction"],
         )
 
-    def step(self):
+    def step(self):       
+        def get_agents(opt):
+            return [agent.type for agent in self.grid.get_agents(dpt(opt[0], opt[1], opt[2]))]
+        
+        def predator_present(types, predators):
+            return any(map(lambda each: each in types, predators))
+        
+        def get_som_probs(opt, danger):
+            if danger:
+                return 0.001
+            return max(0.000001, self.nutrient_grid[opt[0], opt[1], opt[2]])        
+        
+        def get_reg_probs(type, danger, preys):
+            if len(type) == 0:
+                return 0.01
+            if danger:
+                return 0.001
+            else:
+                return max(0.01, sum(Counter(type)[ele] for ele in preys))
+            
         ogs_to_add = []
         ogs_to_kill = []
 
@@ -392,13 +415,34 @@ class Model:
 
             # First, run dispersal submodel if the dispersal range is not 0
             if organism_parameters["range_dispersal"] != 0:
-                self.disperse(
-                    organism_group,
-                    coords,
-                    organism_parameters,
-                    organism_group.biomass >= organism_parameters["biomass_max"],
-                    self.som_id in self.preys[organism_group.type],
+                
+                options = von_neumann_neighborhood_3d(
+                    coords[0], coords[1], coords[2], organism_parameters["range_dispersal"]
                 )
+                
+                probs = np.full(len(options), 0.01)
+                
+                # now check which probability should be boosted (much food, co_occ, or target)
+                if organism_group.biomass < organism_parameters["biomass_max"]:
+                    agents = list(map(get_agents, options))
+                    danger = list(map(predator_present, agents, repeat(self.predators[organism_group.type])))
+                                        
+                    #if organism_group.biomass < organism_parameters["biomass_max"]:
+                    if self.som_id in self.preys[organism_group.type]:
+                        probs = list(map(get_som_probs, options, danger))
+
+                    else:
+                        probs = list(map(get_reg_probs, agents, danger, repeat(self.preys[organism_group.type])))
+                      
+                # Finally, normalize probabilities so that they sum up to 1
+                probs /= np.sum(probs)
+                disperse_location = options[self.rng.choice(len(options), p=probs)]
+
+                # move to the found location
+                organism_group.pt = self.grid.move(
+                    organism_group,
+                    dpt(disperse_location[0], disperse_location[1], disperse_location[2]),
+                )             
             
             # If the agent eats som, the biomass is smaller than max biomass, and there is som, handle uptake
             if (
@@ -420,14 +464,37 @@ class Model:
 
             # Else, if the agent does not eat som, run competition submodel
             elif self.som_id not in self.preys[organism_group.type]:
-                ogs_to_kill.append(
-                    self.compete(
-                        organism_group,
-                        coords,
-                        organism_parameters["mu_max"],
-                        organism_parameters["k"],
-                    )
-                )
+                food_types = self.preys[organism_group.type]
+                food_opts = []
+                food_probs = []
+                mu_max = organism_parameters["mu_max"]
+                k = organism_parameters["k"]
+
+                if len(food_types) != 0:
+                    for obj in self.grid.get_agents(dpt(coords[0], coords[1], coords[2])):
+                        if obj.type in food_types and obj.uid and obj.biomass > 0:
+                            food_opts.append(obj)
+                            food_probs.append(obj.biomass)
+
+                # If there are food options
+                if food_opts:
+                    food_probs /= np.sum(food_probs)
+                    # Pick a semi random target, with probabilities decided by biomass of targets
+                    target_og = food_opts[self.rng.choice(len(food_opts), p=food_probs)]
+                    target_coords = target_og.pt.coordinates
+
+                    # Calculate uptake
+                    uptake = mu_max * target_og.biomass / (k + target_og.biomass)
+
+                    # If organism_group's biomass is smaller than max, eat part of the target
+                    organism_group.biomass += min(target_og.biomass, uptake)
+
+                    self.nutrient_grid[
+                        target_coords[0], target_coords[1], target_coords[2]
+                    ] += max(0, (target_og.biomass - uptake))
+
+                    # finally, add the target organism group to the to kill list
+                    ogs_to_kill.append(target_og.uid)
 
             # If agent's age is >= reproduction age, and biomas >= reproduction biomass, run reproduction submodel
             if (
@@ -436,8 +503,8 @@ class Model:
                 >= organism_parameters["biomass_reproduction"]
             ):
                 organism_group.biomass /= 2
-                ogs_to_add.append(self.reproduce(organism_group))
-                
+                ogs_to_add.append(organism_group.save())
+
         # Loop through all organisms and determine whether they survive for next step
         for organism_group in self.context.agents():
             coords = organism_group.pt.coordinates
@@ -478,88 +545,6 @@ class Model:
 
         self.context.synchronize(restore_organism_group)
 
-    def reproduce(self, organism_group):
-        return organism_group.save()
-
-    def compete(self, organism_group, coords, mu_max, k):
-
-        food_types = self.preys[organism_group.type]
-        food_opts = []
-        food_probs = []
-
-        if len(food_types) != 0:
-            for obj in self.grid.get_agents(dpt(coords[0], coords[1], coords[2])):
-                if obj.type in food_types and obj.uid and obj.biomass > 0:
-                    food_opts.append(obj)
-                    food_probs.append(obj.biomass)
-
-        # If there are food options
-        if food_opts:
-            food_probs /= np.sum(food_probs)
-            # Pick a semi random target, with probabilities decided by biomass of targets
-            target_og = food_opts[self.rng.choice(len(food_opts), p=food_probs)]
-            target_coords = target_og.pt.coordinates
-
-            # Calculate uptake
-            uptake = mu_max * target_og.biomass / (k + target_og.biomass)
-
-            # If organism_group's biomass is smaller than max, eat part of the target
-            organism_group.biomass += min(target_og.biomass, uptake)
-
-            self.nutrient_grid[
-                target_coords[0], target_coords[1], target_coords[2]
-            ] += max(0, (target_og.biomass - uptake))
-
-            # finally, add the target organism group to the to kill list
-            return target_og.uid
-
-    def disperse(
-        self, organism_group, coords, organism_parameters, fully_satisfied, som_feeder
-    ):
-        disperse_location = (coords[0], coords[1], coords[2])
-        preys = self.preys[organism_group.type]
-        predators = self.predators[organism_group.type]
-
-        # for each range step, run the search code (i.e. range=5, search 5 times for food)
-        # for _ in range(organism_parameters["range_dispersal"]):
-        options = von_neumann_neighborhood_3d(
-            coords[0], coords[1], coords[2], organism_parameters["range_dispersal"]
-        )
-        
-        probs = np.full(len(options), 0.01)
-        if not fully_satisfied:
-            # now check which probability should be boosted (much food, co_occ, or target)
-            for i, opt in enumerate(options):
-                # If som feeder, first check whether food availability is not 0, else check whether there is no predator
-                if som_feeder:
-
-                    # predator check
-                    for obj in self.grid.get_agents(dpt(opt[0], opt[1], opt[2])):
-                        if obj.type in predators:
-                            probs[i] = 0.000001
-                            break
-
-                    # food check
-                    probs[i] = max(0.000001, self.nutrient_grid[opt[0], opt[1], opt[2]])
-                else:
-                    # if any obj type is in preys, add 1 to probability, but if there is also a predator, set probability low and break the loop
-                    for obj in self.grid.get_agents(dpt(opt[0], opt[1], opt[2])):
-                        if obj.type in preys:
-                            probs[i] += 1
-                        elif obj.type in predators:
-                            probs[i] = 0.000001
-                            break
-            
-        # Finally, normalize probabilities so that they sum up to 1
-        probs /= np.sum(probs)
-        disperse_location = options[self.rng.choice(len(options), p=probs)]
-
-        # move to the found location
-        organism_group.pt = self.grid.move(
-            organism_group,
-            dpt(disperse_location[0], disperse_location[1], disperse_location[2]),
-        )
-
     def log_agents(self):
         tick = int(self.runner.schedule.tick)
         for organism_group in self.context.agents():
@@ -576,7 +561,6 @@ class Model:
 
     def at_end(self):
         self.agent_logger.close()
-        np.save(self.nutrient_grid_filename, self.nutrient_grid)
 
     def start(self):
         self.runner.execute()
