@@ -4,7 +4,6 @@
 #SBATCH -n 4
 #SBATCH --mem=6gb
 #SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=t.h.vanderkuil@student.utwente.nl
 #SBATCH --time=8:00:00
 
 # Create a directory for this job on the node

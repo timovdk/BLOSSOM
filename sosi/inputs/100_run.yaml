@@ -1,6 +1,6 @@
 #random.seed: 47
-random.seed: 397489
-#random.seed: 34891234098213
+#random.seed: 397489
+random.seed: 34891234098213
 nutrient.type: 1 #0 = random, 1 = uniform
 nutrient.seed: 42
 nutrient.max: 0.12
@@ -10,8 +10,8 @@ world.height: 200
 world.depth: 25
 agent_log_file: 'outputs/agent_log.csv'
 nutrient_log_file: 'outputs/nutrient_grid_end_.npy'
-co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 3}, {"weight": 0.6148356427539814, "source": 0, "target": 4}, {"weight": 0.7306576990838498, "source": 1, "target": 2}, {"weight": 0.9003900420385831, "source": 1, "target": 5}, {"weight": -0.638579754693958, "source": 1, "target": 7}, {"weight": -0.27796656418881527, "source": 2, "target": 7}, {"weight": 0.46123412849139406, "source": 3, "target": 4}, {"weight": 0.6068144174853789, "source": 5, "target": 8}]}'
-#co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 2}, {"weight": 0.6148356427539814, "source": 0, "target": 8}, {"weight": 0.7306576990838498, "source": 2, "target": 4}, {"weight": 0.9003900420385831, "source": 2, "target": 8}, {"weight": -0.638579754693958, "source": 3, "target": 6}, {"weight": -0.27796656418881527, "source": 3, "target": 8}, {"weight": 0.46123412849139406, "source": 4, "target": 5}, {"weight": 0.6068144174853789, "source": 7, "target": 8}]}'
+#co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 3}, {"weight": 0.6148356427539814, "source": 0, "target": 4}, {"weight": 0.7306576990838498, "source": 1, "target": 2}, {"weight": 0.9003900420385831, "source": 1, "target": 5}, {"weight": -0.638579754693958, "source": 1, "target": 7}, {"weight": -0.27796656418881527, "source": 2, "target": 7}, {"weight": 0.46123412849139406, "source": 3, "target": 4}, {"weight": 0.6068144174853789, "source": 5, "target": 8}]}'
+co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 2}, {"weight": 0.6148356427539814, "source": 0, "target": 8}, {"weight": 0.7306576990838498, "source": 2, "target": 4}, {"weight": 0.9003900420385831, "source": 2, "target": 8}, {"weight": -0.638579754693958, "source": 3, "target": 6}, {"weight": -0.27796656418881527, "source": 3, "target": 8}, {"weight": 0.46123412849139406, "source": 4, "target": 5}, {"weight": 0.6068144174853789, "source": 7, "target": 8}]}'
 #co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 1, "target": 4}, {"weight": 0.6148356427539814, "source": 1, "target": 5}, {"weight": 0.7306576990838498, "source": 1, "target": 6}, {"weight": 0.9003900420385831, "source": 2, "target": 5}, {"weight": -0.638579754693958, "source": 2, "target": 6}, {"weight": -0.27796656418881527, "source": 2, "target": 8}, {"weight": 0.46123412849139406, "source": 3, "target": 5}, {"weight": 0.6068144174853789, "source": 4, "target": 5}, {"weight": 0.5112680070896285, "source": 4, "target": 6}, {"weight": 0.42525572507758125, "source": 4, "target": 7}, {"weight": 0.4601658168250095, "source": 4, "target": 8}, {"weight": 0.4943223393958548, "source": 5, "target": 6}]}'
 #co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 1}, {"weight": 0.6148356427539814, "source": 0, "target": 3}, {"weight": 0.7306576990838498, "source": 0, "target": 5}, {"weight": 0.9003900420385831, "source": 0, "target": 8}, {"weight": -0.638579754693958, "source": 1, "target": 3}, {"weight": -0.27796656418881527, "source": 1, "target": 5}, {"weight": 0.46123412849139406, "source": 1, "target": 6}, {"weight": 0.6068144174853789, "source": 3, "target": 7}, {"weight": 0.5112680070896285, "source": 3, "target": 8}, {"weight": 0.42525572507758125, "source": 4, "target": 5}, {"weight": 0.4601658168250095, "source": 4, "target": 6}, {"weight": 0.4943223393958548, "source": 4, "target": 7}, {"weight": -0.14671525430854027, "source": 4, "target": 8}]}'
 #co_occ_network: '{"directed": false, "multigraph": false, "graph": {}, "nodes": [{"id": 0}, {"id": 1}, {"id": 2}, {"id": 3}, {"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}, {"id": 8}], "links": [{"weight": 0.5826312884833548, "source": 0, "target": 1}, {"weight": 0.6148356427539814, "source": 0, "target": 3}, {"weight": 0.7306576990838498, "source": 0, "target": 4}, {"weight": 0.9003900420385831, "source": 0, "target": 6}, {"weight": -0.638579754693958, "source": 0, "target": 7}, {"weight": -0.27796656418881527, "source": 1, "target": 3}, {"weight": 0.46123412849139406, "source": 1, "target": 4}, {"weight": 0.6068144174853789, "source": 1, "target": 6}, {"weight": 0.5112680070896285, "source": 1, "target": 7}, {"weight": 0.42525572507758125, "source": 1, "target": 8}, {"weight": 0.4601658168250095, "source": 2, "target": 5}, {"weight": 0.4943223393958548, "source": 2, "target": 6}, {"weight": -0.14671525430854027, "source": 2, "target": 8}, {"weight": -0.4038872117981791, "source": 3, "target": 4}, {"weight": 0.5176903249517476, "source": 3, "target": 6}, {"weight": 0.7534244447856359, "source": 3, "target": 7}, {"weight": 0.5244768288592718, "source": 4, "target": 7}, {"weight": 0.7363358287149884, "source": 4, "target": 8}, {"weight": 0.631262017598583, "source": 5, "target": 6}, {"weight": 0.13566419265027413, "source": 5, "target": 8}, {"weight": 0.7444351489453024, "source": 6, "target": 7}, {"weight": -0.4320948133020824, "source": 7, "target": 8}]}'
@@ -28,10 +28,10 @@ organism_parameters: [
     range_dispersal: 1,
     age_reproduction: 1,
     age_max: 2,
-    biomass_reproduction: 0.08,
-    biomass_max: 0.08,
-    mu_max: 0.08,
-    k: 0.081,
+    biomass_reproduction: 0.01,
+    biomass_max: 0.01,
+    mu_max: 0.01,
+    k: 0.103,
 },
 {
     label: 'Fungi',
@@ -45,8 +45,8 @@ organism_parameters: [
     #age_max: 1,
     biomass_reproduction: 0.012,
     biomass_max: 0.012,
-    mu_max: 0.004,
-    k: 0.049,
+    mu_max: 0.005,
+    k: 0.05,
 },
 {
     label: 'Root-feeding Nematodes',
@@ -56,12 +56,12 @@ organism_parameters: [
     type: 2,
     range_dispersal: 3,
     age_reproduction: 10,
-    age_max: 35,
+    age_max: 30,
     #age_max: 1,
-    biomass_reproduction: 0.19,
+    biomass_reproduction: 0.2,
     biomass_max: 0.25,
     mu_max: 0.05,
-    k: 0.35,
+    k: 0.25,
 },
 {
     label: 'Bacterivorous Nematodes',
@@ -74,9 +74,9 @@ organism_parameters: [
     age_max: 20,
     #age_max: 1,    
     biomass_reproduction: 0.1,
-    biomass_max: 0.15,
-    mu_max: 0.02,
-    k: 0.08
+    biomass_max: 0.1,
+    mu_max: 0.016,
+    k: 0.009,
 },
 {
     label: 'Fungivorous Nematodes',
@@ -88,10 +88,10 @@ organism_parameters: [
     age_reproduction: 10,
     age_max: 35,
     #age_max: 1,
-    biomass_reproduction: 0.09,
-    biomass_max: 0.12,
-    mu_max: 0.07,
-    k: 0.05,
+    biomass_reproduction: 0.08,
+    biomass_max: 0.1,
+    mu_max: 0.069,
+    k: 0.045,
 },
 {
     label: 'Omnivorous Nematodes',
@@ -103,10 +103,10 @@ organism_parameters: [
     age_reproduction: 15,
     age_max: 45,
     #age_max: 1,
-    biomass_reproduction: 0.2,
-    biomass_max: 0.3,
-    mu_max: 0.02,
-    k: 0.6,
+    biomass_reproduction: 0.3,
+    biomass_max: 0.35,
+    mu_max: 0.01,
+    k: 0.01,
 },
 {
     label: 'Fungivorous mites',
@@ -118,7 +118,7 @@ organism_parameters: [
     age_reproduction: 25,
     age_max: 70,
     #age_max: 1,
-    biomass_reproduction: 0.24,
+    biomass_reproduction: 0.22,
     biomass_max: 0.3,
     mu_max: 0.12,
     k: 0.42,

@@ -390,14 +390,14 @@ class Model:
         
         def get_som_probs(opt, danger):
             if danger:
-                return 0.001
+                return 0.01
             return max(0.000001, self.nutrient_grid[opt[0], opt[1], opt[2]])        
         
         def get_reg_probs(type, danger, preys):
             if len(type) == 0:
                 return 0.01
             if danger:
-                return 0.001
+                return 0.01
             else:
                 return max(0.01, sum(Counter(type)[ele] for ele in preys))
             
