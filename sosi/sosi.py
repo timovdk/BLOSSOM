@@ -1,70 +1,102 @@
 import json
-from mpi4py import MPI
+import pickle
 import networkx as nx
-from numba import njit
 import numpy as np
-
 import repast4py.context as ctx
-from repast4py import core, parameters, random, schedule, space, logging
+
+from mpi4py import MPI
+from numba import njit
+from typing import Tuple, Dict
+from repast4py import core, parameters, random, schedule, space, logging, value_layer
 from repast4py.space import DiscretePoint as dpt
 
-from typing import Tuple, Dict
+X = 0
+Y = 0
+Z = 0
 
-from collections import Counter
-from itertools import repeat
+
+@njit
+def less_than(a, b):
+    return a < b
+
+
+@njit
+def geq(a, b):
+    return a >= b
+
+
+@njit
+def max_numba(a, b):
+    return max(a, b)
+
+
+@njit
+def min_numba(a, b):
+    return min(a, b)
+
+
+@njit
+def normalize_list(input_list):
+    total_sum = np.sum(input_list)
+    if total_sum == 0:
+        raise ValueError("Sum of the list elements is zero, can't normalize.")
+    return input_list / total_sum
 
 
 @njit()
 def precompute_offsets(r):
-    offsets = []
-    for dx in range(-r, r + 1):
-        for dy in range(-r, r + 1):
-            for dz in range(-r, r + 1):
-                if abs(dx) + abs(dy) + abs(dz) <= r:
-                    offsets.append((dx, dy, dz))
-    return np.array(offsets)
+    offsets = set()
+    directions = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+
+    frontier = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+    offsets.update(
+        [(0, 0, 0), (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+    )
+
+    for _ in range(1, r):
+        next_frontier = []
+        for x, y, z in frontier:
+            for dx, dy, dz in directions:
+                neighbor = (x + dx, y + dy, z + dz)
+                if neighbor not in offsets:
+                    offsets.add(neighbor)
+                    next_frontier.append(neighbor)
+        frontier = next_frontier
+    return list(offsets)
 
 
 @njit()
 def von_neumann_neighborhood_3d(x, y, z, r):
-    offsets = precompute_offsets(r)
-    num_offsets = offsets.shape[0]
-    neighbors = []
+    if r == 1:
+        xm = x % X
+        ym = y % Y
+        zm = z % Z
+        return [
+            (xm, ym, zm),
+            (xm, ym, (z + 1) % Z),
+            (xm, ym, (z + -1) % Z),
+            (xm, (y + 1) % Y, zm),
+            (xm, (y + -1) % Y, zm),
+            ((x + 1) % X, ym, zm),
+            ((x + -1) % X, ym, zm),
+        ]
 
-    for i in range(num_offsets):
-        dx, dy, dz = offsets[i]
-        nx, ny, nz = x + dx, y + dy, z + dz
-        if 0 <= nx < 200 and 0 <= ny < 200 and 0 <= nz < 25:
-            neighbors.append((nx, ny, nz))
+    else:
+        neighbors = []
 
-    return neighbors
+        for dx, dy, dz in precompute_offsets(r):
+            neighbors.append(((x + dx) % X, (y + dy) % Y, (z + dz) % Z))
 
-
-@njit()
-def von_neumann_neighborhood_r1(center):
-    x, y, z = center
-
-    neighbors = []
-    # Define offsets for Von Neumann neighborhood
-    for dx, dy, dz in [
-        (0, 0, 1),
-        (0, 0, -1),
-        (0, 1, 0),
-        (0, -1, 0),
-        (1, 0, 0),
-        (-1, 0, 0),
-    ]:
-        new_x, new_y, new_z = x + dx, y + dy, z + dz
-        if 0 <= new_x < 200 and 0 <= new_y < 200 and 0 <= new_z < 25:
-            neighbors.append((new_x, new_y, new_z))
-    return neighbors
+        return neighbors
 
 
 class OrganismGroup(core.Agent):
-    def __init__(self, local_id: int, type: int, rank: int, pt: dpt, biomass):
+    def __init__(
+        self, local_id: int, type: int, rank: int, pt: dpt, biomass, age: int = 0
+    ):
         super().__init__(id=local_id, type=type, rank=rank)
         self.pt = pt
-        self.age = 0
+        self.age = age
         self.biomass = biomass
 
     def save(self) -> Tuple:
@@ -93,6 +125,10 @@ def restore_organism_group(organism_group_data: Tuple):
 
     if uid in organism_group_cache:
         organism_group = organism_group_cache[uid]
+        organism_group.pt = pt
+        organism_group.age = organism_group_data[2]
+        organism_group.biomass = organism_group_data[3]
+
     else:
         organism_group = OrganismGroup(
             local_id=uid[0],
@@ -100,12 +136,11 @@ def restore_organism_group(organism_group_data: Tuple):
             rank=uid[2],
             pt=pt,
             biomass=organism_group_data[3],
+            age=organism_group_data[2],
         )
-        organism_group_cache[uid] = organism_group
 
-    organism_group.pt = pt
-    organism_group.age = organism_group_data[2]
-    organism_group.biomass = organism_group_data[3]
+    organism_group_cache[uid] = organism_group
+
     return organism_group
 
 
@@ -123,58 +158,60 @@ class Model:
 
     def __init__(self, comm: MPI.Intracomm, params: Dict):
         self.comm = comm
-        self.context = ctx.SharedContext(comm)
-        self.rank = comm.Get_rank()
+        self.context = ctx.SharedContext(self.comm)
+        self.rank = self.comm.Get_rank()
 
         # load parameters
         self.organism_parameters = params["organism_parameters"]
-        self.nutrient_grid_filename = params["nutrient_log_file"]
-        self.x_max = params["world.width"]
-        self.y_max = params["world.height"]
-        self.z_max = params["world.depth"]
 
-        # initialize the nutrient grid (SOM)
-        self.initialize_nutrients()
+        # Global so Numba functions can use them as well
+        global X
+        X = params["world.width"]
+        global Y
+        Y = params["world.height"]
+        global Z
+        Z = params["world.depth"]
 
         # Set the rng
         random.init(rng_seed=params["random.seed"])
         self.rng = random.default_rng
 
         # create the schedule
-        self.runner = schedule.init_schedule_runner(comm)
-        self.runner.schedule_repeating_event(
-            1, 1, self.step, priority_type=schedule.PriorityType.FIRST
-        )
-        self.runner.schedule_repeating_event(
-            1, 1, self.log_agents, priority_type=schedule.PriorityType.LAST
-        )
+        self.runner = schedule.init_schedule_runner(self.comm)
+        self.runner.schedule_repeating_event(1, 1, self.step)
         self.runner.schedule_stop(params["stop.at"])
         self.runner.schedule_end_event(self.at_end)
 
-        # load networks
-        self.co_occ_network = nx.node_link_graph(json.loads(params["co_occ_network"]))
+        # load trophic network
         self.trophic_net = nx.node_link_graph(json.loads(params["trophic_network"]))
 
         # create a bounding box equal to the size of the entire global world grid
-        box = space.BoundingBox(
-            0,
-            self.x_max,
-            0,
-            self.y_max,
-            0,
-            self.z_max,
-        )
-        # create a SharedGrid of 'box' size with sticky borders that allows multiple agents
-        # in each grid location.
+        box = space.BoundingBox(0, X, 0, Y, 0, Z)
+
+        # create a SharedGrid of 'box' size with Periodic borders (wrapping) and multiple occupancy
         self.grid = space.SharedGrid(
             name="grid",
             bounds=box,
-            borders=space.BorderType.Sticky,
+            borders=space.BorderType.Periodic,
             occupancy=space.OccupancyType.Multiple,
-            buffer_size=6,
-            comm=comm,
+            buffer_size=params["buffer_size"],
+            comm=self.comm,
         )
         self.context.add_projection(self.grid)
+
+        # Create #Z 2D value layers (3D value layers are not yet supported in Repast4Py)
+        box_2d = space.BoundingBox(0, X, 0, Y)
+        self.value_layers = []
+        for _ in range(Z):
+            vl = value_layer.SharedValueLayer(
+                bounds=box_2d,
+                borders=space.BorderType.Periodic,
+                buffer_size=params["buffer_size"],
+                init_value=params["nutrient.max"],
+                comm=self.comm,
+            )
+            self.context.add_value_layer(vl)
+            self.value_layers.append(vl)
 
         # initialize the logging
         self.agent_logger = logging.TabularLogger(
@@ -190,53 +227,14 @@ class Model:
         )
 
         # networks preprocessing
-        self.co_occurrence_pre_processing()
         self.trophic_net_pre_processing()
 
         # populate the model
-        self.populate()
+        self.populate(params["initial_location"], params["initial_locations_folder"])
 
-        # log the initial state
+        # Synchronize the ranks and log initial state
+        self.context.synchronize(restore_organism_group)
         self.log_agents()
-
-    def initialize_nutrients(self):
-        # if random distro: init random gen and fill a grid with random values between 0 and max nutrient value
-        if int(params["nutrient.type"]) == 0:
-            rng = np.random.default_rng(params["nutrient.seed"])
-
-            # Initialize som grid
-            self.nutrient_grid = rng.random(
-                (self.x_max, self.y_max, self.z_max), dtype=np.float64
-            ) * float(params["nutrient.max"])
-        # else: uniform distribution of half max nutrient value
-        else:
-            self.nutrient_grid = np.full(
-                (self.x_max, self.y_max, self.z_max), float(params["nutrient.max"]) / 2
-            )
-
-    def co_occurrence_pre_processing(self):
-        # Create a list of tuples [(org_id, degree), ...] sorted on degree
-        self.sorted_co_occurrence = sorted(
-            self.co_occ_network.degree, key=lambda x: x[1], reverse=True
-        )
-
-        # Create a list of lists of co_occurring types i.e. co_occurrence[0] returns a list of all co_occurring type_ids for type 0 (bacteria)
-        self.co_occurrence = []
-        # Iterate over all nodes
-        for node in self.co_occ_network.nodes():
-            # Get the nodes that have edges pointing to the current node
-            self.co_occurrence.append([n for n in self.co_occ_network.neighbors(node)])
-
-        # Create a list of only positive co_occurring types
-        self.positive_co_occurrence = []
-        # Iterate over all nodes
-        for node in self.co_occ_network.nodes():
-            # Get the nodes that have edges pointing to the current node
-            pos_ngh = []
-            for n in self.co_occ_network.neighbors(node):
-                if self.co_occ_network.get_edge_data(node, n)["weight"] > 0:
-                    pos_ngh.append(n)
-            self.positive_co_occurrence.append(pos_ngh)
 
     def trophic_net_pre_processing(self):
         # Create a list of lists of connected nodes for each node. i.e. preys[0] will return a list of incoming connected nodes for node 0
@@ -255,332 +253,211 @@ class Model:
         # SOM is always the last id in the trophic net
         self.som_id = len(self.trophic_net.nodes()) - 1
 
-    def populate(self):
+    def populate(self, init_type, init_folder):
         ranks = self.comm.Get_size()
-
         self.organism_id = 0
-        og_types_added = []
 
-        # for each organism group type, add entities
-        for i in range(len(self.organism_parameters)):
-            # Start with the most connected organism by using the sorted_occ list
-            type_to_add = self.sorted_co_occurrence[i][0]
-            # Find the co_occurring types for this og type
-            co_occurring_types = self.co_occurrence[type_to_add]
+        # init_type == 1: load clusters
+        if init_type == 1:
+            with open(init_folder + "/clustered_locations.pkl", "rb") as f:
+                locations = pickle.load(f)
 
-            # number of ogs to add is the initial count divided by the number of ranks
-            number_to_add = int(self.organism_parameters[type_to_add]["count"] / ranks)
-
-            # Find the types that are already placed and co_occur with og_type_to_add
-            co_occurring_types_added = list(
-                set(og_types_added).intersection(co_occurring_types)
-            )
-
-            # If any of the already added types co-occur with the type we are adding currently, ensure placement is based on co-occurrence weights
-            if len(co_occurring_types_added) > 0:
-                # Find placed agents per type and weights per type
-                co_occurring_agents = {}
-                weights = {}
-                for type_id in co_occurring_types_added:
-                    co_occurring_agents[type_id] = list(
-                        self.context.agents(agent_type=type_id)
-                    )
-                    weights[type_id] = self.co_occ_network.get_edge_data(
-                        type_to_add, type_id
-                    )
-                # For each og that should be added for this og_type:
-                for _ in range(number_to_add):
-                    self.informed_placement(
-                        type_to_add,
-                        co_occurring_types_added,
-                        co_occurring_agents,
-                        weights,
-                    )
-
-            # else add the agents of this type on a random location
-            else:
-                # For each og that should be added for this og_type:
-                for _ in range(number_to_add):
-                    self.random_placement(type_to_add)
-
-            # Finally, add this type to the list of added organism types
-            if number_to_add != 0:
-                og_types_added.append(type_to_add)
-
-    def informed_placement(
-        self, type_to_add, co_occurring_types_added, co_occurring_agents, weights
-    ):
-        co_occ_probs = [
-            abs(weights.get(id)["weight"]) for id in co_occurring_types_added
-        ]
-        co_occ_probs /= np.sum(co_occ_probs)
-        # Randomly pick a co occurring type based on the edge weight
-        co_occ_og_id = self.rng.choice(co_occurring_types_added, p=co_occ_probs)
-        # Get all placed agents of this type
-        co_occurring_ogs = co_occurring_agents.get(co_occ_og_id)
-
-        # Decide between positive, negative, random placement from this type
-        placement_type = self.decide_placement_type(weights.get(co_occ_og_id)["weight"])
-
-        if placement_type == 0:
-            self.positive_placement(type_to_add, co_occurring_ogs)
-        elif placement_type == 1:
-            self.negative_placement(type_to_add, co_occurring_ogs)
+        # else, load random
         else:
-            self.random_placement(type_to_add)
+            with open(init_folder + "/random_locations.pkl", "rb") as f:
+                locations = pickle.load(f)
 
-    def decide_placement_type(self, weight):
-        p_pos = weight if 0 <= weight <= 1 else 0
-        p_neg = abs(weight) if -1 <= weight < 0 else 0
-        p_rand = (
-            1 - abs(weight)
-            if -1 <= weight < 0
-            else 1 - weight if 0 <= weight <= 1 else 0
-        )
-        return self.rng.choice(3, p=[p_pos, p_neg, p_rand])
+        # For each agent type, add the defined number of agents for one rank
+        for type_i in range(len(self.organism_parameters)):
+            # Agents are initialized with biomass = biomass_reproduction / 2
+            bm = self.organism_parameters[type_i]["biomass_reproduction"] / 2
+            slice_size = int(self.organism_parameters[type_i]["count"] / ranks)
 
-    def positive_placement(self, type_to_add, co_occurring_ogs):
-        # Get the location of a random co-occurring agent and get a random offset
-        # offset is based on Von Neumann distance of r=1, including the 0,0,0
-        co_occ_loc = self.grid.get_location(
-            co_occurring_ogs[self.rng.choice(len(co_occurring_ogs))]
-        )
-        nghs = von_neumann_neighborhood_r1((co_occ_loc.x, co_occ_loc.y, co_occ_loc.z))
-        loc = nghs[self.rng.choice(len(nghs))]
-        # get a location based on the co_occ_loc and offset, and add an agent here
-        pt = dpt(loc[0], loc[1], loc[2])
-        self.add_agent(
-            type_to_add,
-            pt,
-            self.organism_parameters[type_to_add]["biomass_reproduction"],
-        )
+            # Precompute the start index for each type
+            start_index = self.rank * slice_size
+            end_index = start_index + slice_size
+            locs = locations[type_i][start_index:end_index]
 
-    def negative_placement(self, type_to_add, co_occurring_ogs):
-        loc_found = False
-        pt = dpt(0, 0, 0)
-        while not loc_found:
-            pt = self.grid.get_random_local_pt(self.rng)
-            nghs = von_neumann_neighborhood_r1((pt.x, pt.y, pt.z))
-
-            # If the random location is not near any negative co_occurring orgs, pick this
-            for og in co_occurring_ogs:
-                loc = self.grid.get_location(og)
-                if not ((loc.x, loc.y, loc.z) in nghs):
-                    loc_found = True
-
-        # Add the agent at this location
-        self.add_agent(
-            type_to_add,
-            pt,
-            self.organism_parameters[type_to_add]["biomass_reproduction"],
-        )
-
-    def random_placement(self, type_to_add):
-        # get a random x,y,z location in the grid and add an agent here
-        pt = self.grid.get_random_local_pt(self.rng)
-        self.add_agent(
-            type_to_add,
-            pt,
-            self.organism_parameters[type_to_add]["biomass_reproduction"],
-        )
+            # Add agents for agent_type
+            for i in range(slice_size):
+                self.add_agent(type_i, dpt(locs[i][0], locs[i][1], locs[i][2]), bm)
 
     def step(self):
-        def get_agents(opt):
-            return [
-                agent.type
-                for agent in self.grid.get_agents(dpt(opt[0], opt[1], opt[2]))
-            ]
-
-        def predator_present(types, predators):
-            return any(map(lambda each: each in types, predators))
-
-        def get_som_probs(opt, danger):
-            if danger:
-                return 0.000001
-            return max(0.000001, self.nutrient_grid[opt[0], opt[1], opt[2]])
-
-        def get_reg_probs(type, danger, preys):
-            if len(type) == 0:
-                return 0.01
-            if danger:
-                return 0.000001
-            else:
-                return max(0.01, sum(Counter(type)[ele] for ele in preys))
-
         ogs_to_add = []
         ogs_to_kill = []
 
-        # Loop through all agents
+        # Loop through all agents (shuffled, using rng seed)
         for organism_group in self.context.agents(shuffle=True):
-            # If the agent got eaten, don't execute the step for this agent.
-            if organism_group.uid in ogs_to_kill:
-                continue
+            # If the agent is not in the to_kill list, execute a timestep
+            if organism_group.uid not in ogs_to_kill:
+                # initialize some variables for this timestep
+                organism_parameters = self.organism_parameters[organism_group.type]
+                x, y, z = organism_group.pt.coordinates
 
-            organism_parameters = self.organism_parameters[organism_group.type]
-            coords = organism_group.pt.coordinates
+                dispersal_range = organism_parameters["range_dispersal"]
+                biomass_max = organism_parameters["biomass_max"]
+                k = organism_parameters["k"]
+                preys = set(self.preys[organism_group.type])
+                predators = set(self.predators[organism_group.type])
+                vls = [vl for vl in self.value_layers]
 
-            # First, run dispersal submodel if the dispersal range is not 0
-            if organism_parameters["range_dispersal"] != 0:
+                # First, run dispersal submodel if the dispersal range is not 0
+                if dispersal_range:
+                    # get dispersal options
+                    options = von_neumann_neighborhood_3d(x, y, z, dispersal_range)
 
-                options = von_neumann_neighborhood_3d(
-                    coords[0],
-                    coords[1],
-                    coords[2],
-                    organism_parameters["range_dispersal"],
-                )
+                    # initialize probabilities
+                    probs = np.full(len(options), 0.01)
 
-                probs = np.full(len(options), 0.01)
+                    # create a list of lists with the agent types at each dispersal option
+                    get_agents = self.grid.get_agents
+                    agents = [
+                        [
+                            agent.type
+                            for agent in get_agents(dpt(opt[0], opt[1], opt[2]))
+                        ]
+                        for opt in options
+                    ]
 
-                # now check which probability should be boosted (much food, co_occ, or target)
-                if organism_group.biomass < organism_parameters["biomass_max"]:
-                    agents = list(map(get_agents, options))
-                    danger = list(
-                        map(
-                            predator_present,
-                            agents,
-                            repeat(self.predators[organism_group.type]),
-                        )
+                    # If agent biomass < maximum biomass, disperse based on food availability
+                    if less_than(organism_group.biomass, biomass_max):
+                        # If agent feeds on SOM, set probabilities as the SOM availability
+                        if self.som_id in preys:
+                            for i, opt in enumerate(options):
+                                probs[i] = max_numba(
+                                    0.00001, float(vls[opt[2]].get(dpt(opt[0], opt[1])))
+                                )
+
+                        # If agent feeds on other agents, count the number of preys at dispersal options
+                        else:
+                            for i, agent_types in enumerate(agents):
+                                probs[i] = max_numba(
+                                    0.01, sum(el in agent_types for el in preys)
+                                )
+
+                    # create a mask of save and none save dispersal options
+                    danger = [
+                        any(each in predators for each in agent_types_at_location)
+                        for agent_types_at_location in agents
+                    ]
+                    probs[danger] = 0.00001
+
+                    # Finally, normalize probabilities so that they sum up to 1 and chose dispersal location
+                    probs = normalize_list(probs)
+                    x_d, y_d, z_d = options[self.rng.choice(len(options), p=probs)]
+
+                    # move to the found location
+                    organism_group.pt = self.grid.move(
+                        organism_group, dpt(x_d, y_d, z_d)
                     )
 
-                    # if organism_group.biomass < organism_parameters["biomass_max"]:
-                    if self.som_id in self.preys[organism_group.type]:
-                        probs = list(map(get_som_probs, options, danger))
+                # If biomass is less than biomass_max
+                if less_than(organism_group.biomass, biomass_max):
+                    # If SOM feeder, calculate uptake using Monod and update value_layer
+                    if self.som_id in preys:
+                        food_available = float(vls[z].get(dpt(x, y)))
 
-                    else:
-                        probs = list(
-                            map(
-                                get_reg_probs,
-                                agents,
-                                danger,
-                                repeat(self.preys[organism_group.type]),
-                            )
+                        uptake = biomass_max * food_available / (k + food_available)
+
+                        organism_group.biomass += min_numba(food_available, uptake)
+                        self.value_layers[z].set(
+                            dpt(x, y), max_numba(0, food_available - uptake)
                         )
 
-                # Finally, normalize probabilities so that they sum up to 1
-                probs /= np.sum(probs)
-                disperse_location = options[self.rng.choice(len(options), p=probs)]
+                    # Else run agent-agent feeding submodel
+                    else:
+                        food_opts = []
+                        food_probs = []
 
-                # move to the found location
-                organism_group.pt = self.grid.move(
-                    organism_group,
-                    dpt(
-                        disperse_location[0], disperse_location[1], disperse_location[2]
-                    ),
-                )
+                        # get agents at current loc, and check whether they are a prey and have not been killed already
+                        for obj in self.grid.get_agents(dpt(x, y, z)):
+                            if (obj.type in preys) and (obj.uid not in ogs_to_kill):
+                                food_opts.append(obj)
+                                food_probs.append(max_numba(0.0000001, obj.biomass))
 
-            # If the agent eats som, the biomass is smaller than max biomass, and there is som, handle uptake
-            if (
-                self.som_id in self.preys[organism_group.type]
-                and organism_group.biomass < organism_parameters["biomass_max"]
-                and self.nutrient_grid[coords[0], coords[1], coords[2]]
-            ):
-                food_available = self.nutrient_grid[coords[0], coords[1], coords[2]]
+                        # If there are food options
+                        if food_probs:
+                            food_probs = normalize_list(np.array(food_probs))
 
-                uptake = (
-                    organism_parameters["mu_max"]
-                    * food_available
-                    / (organism_parameters["k"] + food_available)
-                )
-                organism_group.biomass += min(food_available, uptake)
-                self.nutrient_grid[coords[0], coords[1], coords[2]] = max(
-                    0, food_available - uptake
-                )
+                            # Pick a semi random target, with probabilities decided by biomass of targets
+                            target_og = food_opts[
+                                self.rng.choice(len(food_opts), p=food_probs)
+                            ]
+                            x_t, y_t, z_t = target_og.pt.coordinates
 
-            # Else, if the agent does not eat som, run competition submodel
-            elif self.som_id not in self.preys[organism_group.type]:
-                food_types = self.preys[organism_group.type]
-                food_opts = []
-                food_probs = []
-                mu_max = organism_parameters["mu_max"]
-                k = organism_parameters["k"]
+                            # Calculate uptake
+                            uptake = (
+                                biomass_max
+                                * target_og.biomass
+                                / (k + target_og.biomass)
+                            )
 
-                if len(food_types) != 0:
-                    for obj in self.grid.get_agents(
-                        dpt(coords[0], coords[1], coords[2])
-                    ):
-                        if obj.type in food_types and obj.uid and obj.biomass > 0:
-                            food_opts.append(obj)
-                            food_probs.append(obj.biomass)
+                            # Eat organism and calculate how much SOM should be added to the current location (if the prey was not fully eaten)
+                            organism_group.biomass += min_numba(
+                                target_og.biomass, uptake
+                            )
+                            self.value_layers[z_t].set(
+                                dpt(x_t, y_t),
+                                vls[z].get(dpt(x, y))
+                                + max_numba(0, (target_og.biomass - uptake)),
+                            )
 
-                # If there are food options
-                if food_opts:
-                    food_probs /= np.sum(food_probs)
-                    # Pick a semi random target, with probabilities decided by biomass of targets
-                    target_og = food_opts[self.rng.choice(len(food_opts), p=food_probs)]
-                    target_coords = target_og.pt.coordinates
+                            # finally, add the target organism group to the to kill list
+                            ogs_to_kill.append(target_og.uid)
 
-                    # Calculate uptake
-                    uptake = mu_max * target_og.biomass / (k + target_og.biomass)
+                # If agent's age is >= reproduction age, and biomass >= reproduction biomass, run reproduction submodel
+                if geq(
+                    organism_group.age, organism_parameters["age_reproduction"]
+                ) and geq(
+                    organism_group.biomass, organism_parameters["biomass_reproduction"]
+                ):
+                    # divide agent's biomass by 2, and transfer half to the new agent
+                    organism_group.biomass /= 2
+                    ogs_to_add.append(organism_group.save())
 
-                    # If organism_group's biomass is smaller than max, eat part of the target
-                    organism_group.biomass += min(target_og.biomass, uptake)
+                # If the agent's age has reached age_max, add it to the kill list and add its biomass to the value_layer
+                if geq(organism_group.age, organism_parameters["age_max"]):
+                    self.value_layers[z].set(
+                        dpt(x, y),
+                        self.value_layers[z].get(dpt(x, y)) + organism_group.biomass,
+                    )
+                    ogs_to_kill.append(organism_group.uid)
 
-                    self.nutrient_grid[
-                        target_coords[0], target_coords[1], target_coords[2]
-                    ] += max(0, (target_og.biomass - uptake))
-
-                    # finally, add the target organism group to the to kill list
-                    ogs_to_kill.append(target_og.uid)
-
-            # If agent's age is >= reproduction age, and biomas >= reproduction biomass, run reproduction submodel
-            if (
-                organism_group.age >= organism_parameters["age_reproduction"]
-                and organism_group.biomass
-                >= organism_parameters["biomass_reproduction"]
-            ):
-                organism_group.biomass /= 2
-                ogs_to_add.append(organism_group.save())
-
-        # Loop through all organisms and determine whether they survive for next step
-        for organism_group in self.context.agents():
-            coords = organism_group.pt.coordinates
-
-            if (
-                organism_group.age
-                >= self.organism_parameters[organism_group.type]["age_max"]
-            ):
-                self.nutrient_grid[
-                    coords[0], coords[1], coords[2]
-                ] += organism_group.biomass
-                ogs_to_kill.append(organism_group.uid)
-
-            organism_group.age += 1
-
-        ogs_to_add = filter(None, ogs_to_add)
-        ogs_to_kill = filter(None, ogs_to_kill)
+                # Increase agent's age
+                organism_group.age += 1
 
         # loop for adding organism groups (from reproduction step)
         for og in ogs_to_add:
             pt_array = og[1]
-
             # If organism is Fungi, replicate at a cell next to parent cell
             if og[0][1] == 1:
-                nghs = von_neumann_neighborhood_r1(
-                    (pt_array[0], pt_array[1], pt_array[2])
+                nghs = von_neumann_neighborhood_3d(
+                    pt_array[0], pt_array[1], pt_array[2], r=1
                 )
                 pt_array = nghs[self.rng.choice(len(nghs))]
 
             pt = dpt(pt_array[0], pt_array[1], pt_array[2])
             self.add_agent(og[0][1], pt, og[3])
 
-        # loop for removing organism groups that were added to the kill list
-        for uid in list(set(ogs_to_kill)):
-            agent = self.context.agent(uid)
-            if agent is not None:
-                self.remove_agent(agent)
+        # loop for removing agents that were added to the kill list
+        for uid in ogs_to_kill:
+            self.remove_agent(self.context.agent(uid))
+            organism_group_cache.pop(uid, None)
 
+        # Synchronize ranks and log agents
         self.context.synchronize(restore_organism_group)
+        self.log_agents()
 
     def log_agents(self):
         tick = int(self.runner.schedule.tick)
         for organism_group in self.context.agents():
-            coords = organism_group.pt.coordinates
+            x, y, z = organism_group.pt.coordinates
             self.agent_logger.log_row(
                 tick,
                 organism_group.type,
-                coords[0],
-                coords[1],
-                coords[2],
+                x,
+                y,
+                z,
             )
 
         self.agent_logger.write()

@@ -1,0 +1,114 @@
+#random.seed: 47
+#random.seed: 397489
+random.seed: 34891234098213
+nutrient.max: 0.48
+stop.at: 50
+world.width: 100
+world.height: 100
+world.depth: 12
+buffer_size: 6
+initial_location: 0 #0: full random 1: random clusters
+initial_locations_folder: 'inputs'
+agent_log_file: 'outputs/agent_log.csv'
+trophic_network: '{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"organism": "bacteria", "id": 0}, {"organism": "fungi", "id": 1}, {"organism": "root-feeding nematodes", "id": 2}, {"organism": "bacterivorous nematodes", "id": 3}, {"organism": "fungivorous nematodes", "id": 4}, {"organism": "omnivorous nematodes", "id": 5}, {"organism": "fungivorous mites", "id": 6}, {"organism": "omnivorous mites", "id": 7}, {"organism": "collembolans", "id": 8}, {"organism": "som", "id": 9}], "links": [{"source": 0, "target": 3}, {"source": 0, "target": 5}, {"source": 1, "target": 4}, {"source": 1, "target": 6}, {"source": 1, "target": 8}, {"source": 2, "target": 5}, {"source": 2, "target": 7}, {"source": 3, "target": 5}, {"source": 3, "target": 7}, {"source": 4, "target": 5}, {"source": 4, "target": 7}, {"source": 5, "target": 7}, {"source": 6, "target": 7}, {"source": 8, "target": 7}, {"source": 9, "target": 0}, {"source": 9, "target": 1}, {"source": 9, "target": 2}]}'
+organism_parameters: [
+  {
+    label: 'Bacteria',
+    count: 18000,
+    type: 0,
+    range_dispersal: 1,
+    age_reproduction: 1,
+    age_max: 2,
+    biomass_reproduction: 0.8,
+    biomass_max: 0.8,
+    k: 1,
+},
+{
+    label: 'Fungi',
+    count: 12000,
+    type: 1,
+    range_dispersal: 0,
+    age_reproduction: 2,
+    age_max: 15,
+    biomass_reproduction: 0.8,
+    biomass_max: 1.2,
+    k: 3.6,
+},
+{
+    label: 'Root-feeding Nematodes',
+    count: 4000,
+    type: 2,
+    range_dispersal: 3,
+    age_reproduction: 8,
+    age_max: 10,
+    biomass_reproduction: 1.6,
+    biomass_max: 2,
+    k: 1.6,
+},
+{
+    label: 'Bacterivorous Nematodes',
+    count: 6000,
+    type: 3,
+    range_dispersal: 2,
+    age_reproduction: 6,
+    age_max: 8,
+    biomass_reproduction: 1.2,
+    biomass_max: 1.2,
+    k: 0.32,
+},
+{
+    label: 'Fungivorous Nematodes',
+    count: 5000,
+    type: 4,
+    range_dispersal: 3,
+    age_reproduction: 10,
+    age_max: 15,
+    biomass_reproduction: 1.6,
+    biomass_max: 2.4,
+    k: 0.8,
+},
+{
+    label: 'Omnivorous Nematodes',
+    count: 1600,
+    type: 5,
+    range_dispersal: 4,
+    age_reproduction: 14,
+    age_max: 18,
+    biomass_reproduction: 2,
+    biomass_max: 3.2,
+    k: 6.4,
+},
+{
+    label: 'Fungivorous mites',
+    count: 1800,
+    type: 6,
+    range_dispersal: 5,
+    age_reproduction: 25,
+    age_max: 50,
+    biomass_reproduction: 2.8,
+    biomass_max: 3.2,
+    k: 1.2,
+},
+{
+    label: 'Omnivorous mites',
+    count: 800,
+    type: 7,
+    range_dispersal: 6,
+    age_reproduction: 35,
+    age_max: 40,
+    biomass_reproduction: 3.2,
+    biomass_max: 4,
+    k: 2.4,
+},
+{
+    label: 'Collembolans',
+    count: 800,
+    type: 8,
+    range_dispersal: 6,
+    age_reproduction: 15,
+    age_max: 35,
+    biomass_reproduction: 2.4,
+    biomass_max: 2.8,
+    k: 0.32,
+},
+]
