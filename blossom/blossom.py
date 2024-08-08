@@ -230,7 +230,7 @@ class Model:
         self.trophic_net_pre_processing()
 
         # populate the model
-        self.populate(params["initial_location"], params["initial_locations_folder"])
+        self.populate(params["initial_locations_file"])
 
         # Synchronize the ranks and log initial state
         self.context.synchronize(restore_organism_group)
@@ -253,18 +253,11 @@ class Model:
         # SOM is always the last id in the trophic net
         self.som_id = len(self.trophic_net.nodes()) - 1
 
-    def populate(self, init_type, init_folder):
+    def populate(self, init_file):
         ranks = self.comm.Get_size()
         self.organism_id = 0
-
-        # init_type == 1: load clusters
-        if init_type == 1:
-            with open(init_folder + "/clustered_locations.pkl", "rb") as f:
-                locations = pickle.load(f)
-
-        # else, load random
-        else:
-            with open(init_folder + "/random_locations.pkl", "rb") as f:
+        
+        with open(init_file, "rb") as f:
                 locations = pickle.load(f)
 
         # For each agent type, add the defined number of agents for one rank
