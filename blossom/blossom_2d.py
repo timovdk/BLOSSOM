@@ -24,6 +24,9 @@ def less_than(a, b):
 def geq(a, b):
     return a >= b
 
+@njit
+def eq(a, b):
+    return a == b
 
 @njit
 def max_numba(a, b):
@@ -336,7 +339,7 @@ class Model:
 
                 # First: Dispersal
                 # If bacteria, random r=1
-                if organism_group.type == 0:
+                if eq(organism_group.type, 0):
                     # get dispersal options
                     options = von_neumann_r1(x, y)
                     # Finally, normalize probabilities so that they sum up to 1 and chose dispersal location
