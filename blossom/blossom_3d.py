@@ -1,5 +1,4 @@
 import json
-import pickle
 import networkx as nx
 import numpy as np
 import repast4py.context as ctx
@@ -9,6 +8,7 @@ from numba import njit
 from typing import Tuple, Dict
 from repast4py import core, parameters, random, schedule, space, logging, value_layer
 from repast4py.space import DiscretePoint as dpt
+from sklearn.datasets import make_blobs
 
 X = 0
 Y = 0
@@ -24,6 +24,9 @@ def less_than(a, b):
 def geq(a, b):
     return a >= b
 
+@njit
+def eq(a, b):
+    return a == b
 
 @njit
 def max_numba(a, b):
@@ -64,30 +67,24 @@ def precompute_offsets(r):
         frontier = next_frontier
     return list(offsets)
 
+@njit()
+def von_neumann_r1(x, y, z):
+    return [
+        (x, y, z),
+        (x, y, (z + 1) % Z),
+        (x, y, (z + -1) % Z),
+        (x, (y + 1) % Y, z),
+        (x, (y + -1) % Y, z),
+        ((x + 1) % X, y, z),
+        ((x + -1) % X, y, z),
+    ]
 
 @njit()
 def von_neumann_neighborhood_3d(x, y, z, r):
-    if r == 1:
-        xm = x % X
-        ym = y % Y
-        zm = z % Z
-        return [
-            (xm, ym, zm),
-            (xm, ym, (z + 1) % Z),
-            (xm, ym, (z + -1) % Z),
-            (xm, (y + 1) % Y, zm),
-            (xm, (y + -1) % Y, zm),
-            ((x + 1) % X, ym, zm),
-            ((x + -1) % X, ym, zm),
-        ]
-
-    else:
-        neighbors = []
-
-        for dx, dy, dz in precompute_offsets(r):
-            neighbors.append(((x + dx) % X, (y + dy) % Y, (z + dz) % Z))
-
-        return neighbors
+    neighbors = []
+    for dx, dy, dz in precompute_offsets(r):
+        neighbors.append(((x + dx) % X, (y + dy) % Y, (z + dz) % Z))
+    return neighbors
 
 
 class OrganismGroup(core.Agent):
@@ -230,7 +227,9 @@ class Model:
         self.trophic_net_pre_processing()
 
         # populate the model
-        self.populate(params["initial_locations_file"])
+        self.populate(
+            params["initial_distribution_type"], params["initial_distribution_seed"]
+        )
 
         # Synchronize the ranks and log initial state
         self.context.synchronize(restore_organism_group)
@@ -253,27 +252,86 @@ class Model:
         # SOM is always the last id in the trophic net
         self.som_id = len(self.trophic_net.nodes()) - 1
 
-    def populate(self, init_file):
+    def populate(self, init, seed):
         ranks = self.comm.Get_size()
         self.organism_id = 0
+        distribution_rng = np.random.default_rng(seed)
 
-        with open(init_file, "rb") as f:
-            locations = pickle.load(f)
+        # if init = 0, random, if init = 1 clustered
+        if init:
+            # For each agent type, add the defined number of agents for one rank
+            for type_i in range(len(self.organism_parameters)):
+                # Agents are initialized with biomass = biomass_reproduction / 2
+                bm = self.organism_parameters[type_i]["biomass_reproduction"] / 2
 
-        # For each agent type, add the defined number of agents for one rank
-        for type_i in range(len(self.organism_parameters)):
-            # Agents are initialized with biomass = biomass_reproduction / 2
-            bm = self.organism_parameters[type_i]["biomass_reproduction"] / 2
-            slice_size = int(self.organism_parameters[type_i]["count"] / ranks)
+                # Get the clustered locations for the current type
+                locations = self.create_random_clusters(
+                    int(self.organism_parameters[type_i]["count"] / ranks),
+                    distribution_rng,
+                )
 
-            # Precompute the start index for each type
-            start_index = self.rank * slice_size
-            end_index = start_index + slice_size
-            locs = locations[type_i][start_index:end_index]
+                # Add agents for agent_type
+                for loc in locations:
+                    self.add_agent(type_i, loc, bm)
+        else:
+            # For each agent type, add the defined number of agents for one rank
+            for type_i in range(len(self.organism_parameters)):
+                # Agents are initialized with biomass = biomass_reproduction / 2
+                bm = self.organism_parameters[type_i]["biomass_reproduction"] / 2
 
-            # Add agents for agent_type
-            for i in range(slice_size):
-                self.add_agent(type_i, dpt(locs[i][0], locs[i][1], locs[i][2]), bm)
+                # Add agents for agent_type
+                for _ in range(int(self.organism_parameters[type_i]["count"] / ranks)):
+                    loc = self.grid.get_random_local_pt(distribution_rng)
+                    self.add_agent(type_i, loc, bm)
+
+    def create_random_clusters(self, num_individuals, distribution_rng):
+        clusters = []
+        occupied_locations = set()
+
+        locations_remaining = num_individuals
+        # Loop until all agents have a location
+        while locations_remaining > 0:
+            # Randomly determine the size of the next cluster
+            cluster_size = min(
+                locations_remaining,
+                distribution_rng.integers(
+                    max(1, num_individuals / 1000), num_individuals / 50
+                ),
+            )
+            # Randomly determine the center of the next cluster
+            center = distribution_rng.uniform(0, [X, Y], size=(1, 2))
+
+            # Generate the cluster using make_blobs
+            cluster, _ = make_blobs(
+                n_samples=cluster_size,
+                centers=center,
+                cluster_std=(
+                    (-0.000013574 * (cluster_size**2))
+                    + (0.0180034 * cluster_size)
+                    + 0.920899
+                ),
+                random_state=distribution_rng.integers(0, 4294967294),
+            )
+
+            # Round locs to integer coordinates
+            cluster = np.round(cluster).astype(int)
+
+            # Only add as many locations as needed
+            for point in cluster:
+                if locations_remaining <= 0:
+                    break
+                x, y = point
+
+                # Make sure the coordinates fall within X and Y
+                point_tuple = (x % X, y % Y)
+
+                # Add the point to the list if it is not already occupied
+                if point_tuple not in occupied_locations:
+                    clusters.append(dpt(point_tuple[0], point_tuple[1]))
+                    occupied_locations.add(point_tuple)
+                    locations_remaining -= 1
+
+        return clusters
 
     def step(self):
         ogs_to_add = []
@@ -293,8 +351,19 @@ class Model:
                 preys = self.preys[organism_group.type]
                 predators = self.predators[organism_group.type]
 
-                # First, run dispersal submodel if the dispersal range is not 0
-                if dispersal_range:
+                # First: Dispersal
+                # If bacteria, random r=1
+                if eq(organism_group.type, 0):
+                    # get dispersal options
+                    options = von_neumann_r1(x, y, z)
+                    # Finally, normalize probabilities so that they sum up to 1 and chose dispersal location
+                    # move to the found location
+                    organism_group.pt = self.grid.move(
+                        organism_group,
+                        dpt(*options[self.rng.choice(len(options))]),
+                    )
+                # Elif not Fungi: regular movement
+                elif organism_group.type != 1:
                     # get dispersal options
                     options = von_neumann_neighborhood_3d(x, y, z, dispersal_range)
 
