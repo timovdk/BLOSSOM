@@ -4,7 +4,7 @@
 #SBATCH -n 4
 #SBATCH --mem=6gb
 #SBATCH --mail-type=END,FAIL
-#SBATCH --time=8:00:00
+#SBATCH --time=48:00:00
 
 # Create a directory for this job on the node
 cd /local
@@ -28,7 +28,7 @@ echo "Name of nodes used          : "$SLURM_JOB_NODELIST
 echo "Starting worker: "
 
 # Run the job
-mpirun python3 sosi.py 100_run.yaml
+mpirun python3 blossom_2d.py inputs/data_collection_2d.yaml
 
 # Copy output back to the master, comment with # if not used
 mv outputs ${SLURM_SUBMIT_DIR}

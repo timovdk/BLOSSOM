@@ -10,9 +10,9 @@ from typing import Tuple, Dict
 from repast4py import core, parameters, random, schedule, space, logging, value_layer
 from repast4py.space import DiscretePoint as dpt
 
+
 X = 0
 Y = 0
-Z = 0
 
 
 @njit
@@ -46,48 +46,40 @@ def normalize_list(input_list):
 @njit()
 def precompute_offsets(r):
     offsets = set()
-    directions = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+    directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
 
-    frontier = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+    frontier = [(1, 0), (-1, 0), (0, 1), (0, -1)]
     offsets.update(
-        [(0, 0, 0), (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+        [(0, 0), (1, 0), (-1, 0), (0, 1), (0, -1)]
     )
 
     for _ in range(1, r):
         next_frontier = []
-        for x, y, z in frontier:
-            for dx, dy, dz in directions:
-                neighbor = (x + dx, y + dy, z + dz)
+        for x, y in frontier:
+            for dx, dy in directions:
+                neighbor = (x + dx, y + dy)
                 if neighbor not in offsets:
                     offsets.add(neighbor)
                     next_frontier.append(neighbor)
         frontier = next_frontier
     return list(offsets)
 
+@njit()
+def von_neumann_r1(x, y):
+    return [
+        (x, y),
+        (x, (y + 1) % Y),
+        (x, (y + -1) % Y),
+        ((x + 1) % X, y),
+        ((x + -1) % X, y),
+    ]
 
 @njit()
-def von_neumann_neighborhood_3d(x, y, z, r):
-    if r == 1:
-        xm = x % X
-        ym = y % Y
-        zm = z % Z
-        return [
-            (xm, ym, zm),
-            (xm, ym, (z + 1) % Z),
-            (xm, ym, (z + -1) % Z),
-            (xm, (y + 1) % Y, zm),
-            (xm, (y + -1) % Y, zm),
-            ((x + 1) % X, ym, zm),
-            ((x + -1) % X, ym, zm),
-        ]
-
-    else:
-        neighbors = []
-
-        for dx, dy, dz in precompute_offsets(r):
-            neighbors.append(((x + dx) % X, (y + dy) % Y, (z + dz) % Z))
-
-        return neighbors
+def von_neumann_neighborhood_2d(x, y, r):
+    neighbors = []
+    for dx, dy in precompute_offsets(r):
+        neighbors.append(((x + dx) % X, (y + dy) % Y))
+    return neighbors
 
 
 class OrganismGroup(core.Agent):
@@ -121,7 +113,7 @@ def restore_organism_group(organism_group_data: Tuple):
     # uid is a 3 element tuple: 0 is id, 1 is type, 2 is rank
     uid = organism_group_data[0]
     pt_array = organism_group_data[1]
-    pt = dpt(pt_array[0], pt_array[1], pt_array[2])
+    pt = dpt(pt_array[0], pt_array[1])
 
     if uid in organism_group_cache:
         organism_group = organism_group_cache[uid]
@@ -169,8 +161,6 @@ class Model:
         X = params["world.width"]
         global Y
         Y = params["world.height"]
-        global Z
-        Z = params["world.depth"]
 
         # Set the rng
         random.init(rng_seed=params["random.seed"])
@@ -186,7 +176,7 @@ class Model:
         self.trophic_net = nx.node_link_graph(json.loads(params["trophic_network"]))
 
         # create a bounding box equal to the size of the entire global world grid
-        box = space.BoundingBox(0, X, 0, Y, 0, Z)
+        box = space.BoundingBox(0, X, 0, Y)
 
         # create a SharedGrid of 'box' size with Periodic borders (wrapping) and multiple occupancy
         self.grid = space.SharedGrid(
@@ -200,18 +190,14 @@ class Model:
         self.context.add_projection(self.grid)
 
         # Create #Z 2D value layers (3D value layers are not yet supported in Repast4Py)
-        box_2d = space.BoundingBox(0, X, 0, Y)
-        self.value_layers = []
-        for _ in range(Z):
-            vl = value_layer.SharedValueLayer(
-                bounds=box_2d,
+        self.value_layer = value_layer.SharedValueLayer(
+                bounds=box,
                 borders=space.BorderType.Periodic,
-                buffer_size=0,
+                buffer_size=params["buffer_size"],
                 init_value=params["nutrient.max"],
                 comm=self.comm,
             )
-            self.context.add_value_layer(vl)
-            self.value_layers.append(vl)
+        self.context.add_value_layer(self.value_layer)
 
         # initialize the logging
         self.agent_logger = logging.TabularLogger(
@@ -221,8 +207,7 @@ class Model:
                 "tick",
                 "type",
                 "x",
-                "y",
-                "z",
+                "y"
             ],
         )
 
@@ -273,7 +258,7 @@ class Model:
 
             # Add agents for agent_type
             for i in range(slice_size):
-                self.add_agent(type_i, dpt(locs[i][0], locs[i][1], locs[i][2]), bm)
+                self.add_agent(type_i, dpt(locs[i][0], locs[i][1]), bm)
 
     def step(self):
         ogs_to_add = []
@@ -286,17 +271,32 @@ class Model:
             if organism_group.id not in ids_to_kill:
                 # initialize some variables for this timestep
                 organism_parameters = self.organism_parameters[organism_group.type]
-                x, y, z = organism_group.pt.coordinates
+                x, y, _ = organism_group.pt.coordinates
 
                 dispersal_range = organism_parameters["range_dispersal"]
                 biomass_max = organism_parameters["biomass_max"]
                 preys = self.preys[organism_group.type]
                 predators = self.predators[organism_group.type]
 
-                # First, run dispersal submodel if the dispersal range is not 0
-                if dispersal_range:
+                # First: Dispersal
+                # If bacteria, random r=1
+                if organism_group.type == 0:
                     # get dispersal options
-                    options = von_neumann_neighborhood_3d(x, y, z, dispersal_range)
+                    options = von_neumann_r1(x, y)
+                    # Finally, normalize probabilities so that they sum up to 1 and chose dispersal location
+                    # move to the found location
+                    organism_group.pt = self.grid.move(
+                        organism_group,
+                        dpt(
+                            *options[
+                                self.rng.choice(len(options))
+                            ]
+                        ),
+                    )
+                # Elif not Fungi: regular movement 
+                elif organism_group.type != 1:
+                    # get dispersal options
+                    options = von_neumann_neighborhood_2d(x, y, dispersal_range)
 
                     # initialize probabilities
                     probs = np.full(len(options), 0.01)
@@ -305,7 +305,7 @@ class Model:
                         if self.som_id in preys:
                             for i, opt in enumerate(options):
                                 for agent in self.grid.get_agents(
-                                    dpt(opt[0], opt[1], opt[2])
+                                    dpt(opt[0], opt[1])
                                 ):
                                     if agent.id in ids_to_kill:
                                         continue
@@ -313,13 +313,13 @@ class Model:
                                         probs[i] = 0.00001
                                         break
                                 else:
-                                    probs[i] = self.value_layers[opt[2]].get(
+                                    probs[i] = self.value_layer.get(
                                         dpt(opt[0], opt[1])
                                     )
                         else:
                             for i, opt in enumerate(options):
                                 for agent in self.grid.get_agents(
-                                    dpt(opt[0], opt[1], opt[2])
+                                    dpt(opt[0], opt[1])
                                 ):
                                     if agent.id in ids_to_kill:
                                         continue
@@ -331,7 +331,7 @@ class Model:
                     else:
                         for i, opt in enumerate(options):
                             for agent in self.grid.get_agents(
-                                dpt(opt[0], opt[1], opt[2])
+                                dpt(opt[0], opt[1])
                             ):
                                 if agent.id in ids_to_kill:
                                     continue
@@ -354,7 +354,7 @@ class Model:
                 if less_than(organism_group.biomass, biomass_max):
                     # If SOM feeder, calculate uptake using Monod and update value_layer
                     if self.som_id in preys:
-                        food_available = float(self.value_layers[z].get(dpt(x, y)))
+                        food_available = float(self.value_layer.get(dpt(x, y)))
 
                         uptake = (
                             biomass_max
@@ -363,7 +363,7 @@ class Model:
                         )
 
                         organism_group.biomass += min_numba(food_available, uptake)
-                        self.value_layers[z].set(
+                        self.value_layer.set(
                             dpt(x, y), max_numba(0, food_available - uptake)
                         )
 
@@ -373,7 +373,7 @@ class Model:
                         food_probs = []
 
                         # get agents at current loc, and check whether they are a prey and have not been killed already
-                        for obj in self.grid.get_agents(dpt(x, y, z)):
+                        for obj in self.grid.get_agents(dpt(x, y)):
                             if (obj.type in preys) and (obj.id not in ids_to_kill):
                                 food_opts.append(obj)
                                 food_probs.append(max_numba(0.0000001, obj.biomass))
@@ -397,9 +397,9 @@ class Model:
 
                             # Eat organism and calculate how much SOM should be added to the current location (if the prey was not fully eaten)
                             organism_group.biomass += min_numba(target_og_bm, uptake)
-                            self.value_layers[z].set(
+                            self.value_layer.set(
                                 dpt(x, y),
-                                self.value_layers[z].get(dpt(x, y))
+                                self.value_layer.get(dpt(x, y))
                                 + max_numba(0, (target_og_bm - uptake)),
                             )
 
@@ -419,9 +419,9 @@ class Model:
 
                 # If the agent's age has reached age_max, add it to the kill list and add its biomass to the value_layer
                 if geq(organism_group.age, organism_parameters["age_max"]):
-                    self.value_layers[z].set(
+                    self.value_layer.set(
                         dpt(x, y),
-                        self.value_layers[z].get(dpt(x, y)) + organism_group.biomass,
+                        self.value_layer.get(dpt(x, y)) + organism_group.biomass,
                     )
                     ogs_to_kill.append(organism_group.uid)
                     ids_to_kill.add(organism_group.id)
@@ -434,12 +434,10 @@ class Model:
             pt_array = og[1]
             # If organism is Fungi, replicate at a cell next to parent cell
             if og[0][1] == 1:
-                nghs = von_neumann_neighborhood_3d(
-                    pt_array[0], pt_array[1], pt_array[2], r=1
-                )
+                nghs = von_neumann_r1(pt_array[0], pt_array[1])
                 pt_array = nghs[self.rng.choice(len(nghs))]
 
-            pt = dpt(pt_array[0], pt_array[1], pt_array[2])
+            pt = dpt(pt_array[0], pt_array[1])
             self.add_agent(og[0][1], pt, og[3])
 
         # loop for removing agents that were added to the kill list
@@ -454,13 +452,12 @@ class Model:
     def log_agents(self):
         tick = int(self.runner.schedule.tick)
         for organism_group in self.context.agents():
-            x, y, z = organism_group.pt.coordinates
+            x, y, _ = organism_group.pt.coordinates
             self.agent_logger.log_row(
                 tick,
                 organism_group.type,
                 x,
                 y,
-                z,
             )
 
         self.agent_logger.write()

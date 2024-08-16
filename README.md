@@ -12,4 +12,4 @@ Tested for Windows with [WSL2](https://learn.microsoft.com/en-us/windows/wsl/ins
 1. Install MPI (in this case [mpich](https://www.mpich.org/), but openMPI should also work fine (not tested)): `sudo apt install mpich`
 2. Install Python libraries (consider making a venv) `env CC=mpicxx pip3 install -r requirements.txt`
      - If you encounter issues with Repast4Py, try following the [Repast4Py install instructions](https://repast.github.io/repast4py.site/index.html)
-4. Run the model from the `./blossom` folder with the command `mpirun -n 2 python3 blossom.py ./inputs/run.yaml`, where `-n <#_processes>` sets the number of processes that are used. NOTE: `-n 1` is not supported!
+4. Run the model from the `./blossom` folder with the command `mpirun -n 2 python3 blossom_2d.py ./inputs/data_collection_2d.yaml`, where `-n <#_processes>` sets the number of processes that are used. NOTE: `-n 1` is not supported!
