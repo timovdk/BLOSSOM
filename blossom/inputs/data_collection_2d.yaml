@@ -6,10 +6,9 @@ random.seed: 9456183535
 #random.seed: 1287617185
 # 3-7-11-15
 #random.seed: 2355466888
-# 0-1-2-3
-initial_locations_file: 'inputs/random_locations_1.pkl'
-#initial_locations_file: 'inputs/clustered_locations_1.pkl'
 agent_log_file: 'outputs/agent_log.csv'
+initial_distribution_type: 1 #0 = random, 1 = clustered
+initial_distribution_seed: 23409
 nutrient.max: 0.0078
 stop.at: 50
 world.width: 400
@@ -59,7 +58,7 @@ organism_parameters: [
         age_max: 8,
         biomass_reproduction: 0.01,
         biomass_max: 0.013,
-        k: 0.3,
+        k: 0.04,
     },
     {
         label: 'Fungivorous Nematodes',
