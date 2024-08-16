@@ -299,7 +299,7 @@ class Model:
                 ),
             )
             # Randomly determine the center of the next cluster
-            center = distribution_rng.uniform(0, [X, Y], size=(1, 2))
+            center = distribution_rng.uniform(0, [X, Y, Z], size=(1, 3))
 
             # Generate the cluster using make_blobs
             cluster, _ = make_blobs(
@@ -311,6 +311,7 @@ class Model:
                     + 0.920899
                 ),
                 random_state=distribution_rng.integers(0, 4294967294),
+                n_features=3
             )
 
             # Round locs to integer coordinates
@@ -320,14 +321,14 @@ class Model:
             for point in cluster:
                 if locations_remaining <= 0:
                     break
-                x, y = point
+                x, y, z = point
 
                 # Make sure the coordinates fall within X and Y
-                point_tuple = (x % X, y % Y)
+                point_tuple = (x % X, y % Y, z % Z)
 
                 # Add the point to the list if it is not already occupied
                 if point_tuple not in occupied_locations:
-                    clusters.append(dpt(point_tuple[0], point_tuple[1]))
+                    clusters.append(dpt(point_tuple[0], point_tuple[1], point_tuple[2]))
                     occupied_locations.add(point_tuple)
                     locations_remaining -= 1
 
