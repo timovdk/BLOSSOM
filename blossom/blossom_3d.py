@@ -24,9 +24,11 @@ def less_than(a, b):
 def geq(a, b):
     return a >= b
 
+
 @njit
 def eq(a, b):
     return a == b
+
 
 @njit
 def max_numba(a, b):
@@ -67,6 +69,7 @@ def precompute_offsets(r):
         frontier = next_frontier
     return list(offsets)
 
+
 @njit()
 def von_neumann_r1(x, y, z):
     return [
@@ -78,6 +81,7 @@ def von_neumann_r1(x, y, z):
         ((x + 1) % X, y, z),
         ((x + -1) % X, y, z),
     ]
+
 
 @njit()
 def von_neumann_neighborhood_3d(x, y, z, r):
@@ -207,6 +211,23 @@ class Model:
                 init_value=params["nutrient.max"],
                 comm=self.comm,
             )
+
+            # if random nutrient init, loop through all locations and set to random number
+            # sampled from a random uniform distribution
+            if params["nutrient.type"] == 0:
+                local_bounds = self.grid.get_local_bounds()
+                nutrient_rng = np.random.default_rng(params["nutrient.seed"])
+                for x in range(
+                    local_bounds.xmin, local_bounds.xmin + local_bounds.xextent
+                ):
+                    for y in range(
+                        local_bounds.ymin, local_bounds.ymin + local_bounds.yextent
+                    ):
+                        vl.set(
+                            dpt(x, y),
+                            nutrient_rng.uniform(0, 2 * params["nutrient.max"]),
+                        )
+
             self.context.add_value_layer(vl)
             self.value_layers.append(vl)
 
@@ -311,7 +332,7 @@ class Model:
                     + 0.920899
                 ),
                 random_state=distribution_rng.integers(0, 4294967294),
-                n_features=3
+                n_features=3,
             )
 
             # Round locs to integer coordinates

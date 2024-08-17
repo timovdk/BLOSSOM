@@ -1,3 +1,4 @@
+agent_log_file: 'outputs/agent_log.csv'
 # 0-4-8-12
 random.seed: 9456183535
 # 1-5-9-13
@@ -6,11 +7,12 @@ random.seed: 9456183535
 #random.seed: 1287617185
 # 3-7-11-15
 #random.seed: 2355466888
-agent_log_file: 'outputs/agent_log.csv'
 initial_distribution_type: 1 #0 = random, 1 = clustered
 initial_distribution_seed: 23409
+nutrient.type: 1 # 0 = random, 1 = uniform 
+nutrient.seed: 12473892
 nutrient.max: 0.24
-stop.at: 100
+stop.at: 1
 world.width: 200
 world.height: 200
 world.depth: 10

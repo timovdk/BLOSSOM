@@ -24,9 +24,11 @@ def less_than(a, b):
 def geq(a, b):
     return a >= b
 
+
 @njit
 def eq(a, b):
     return a == b
+
 
 @njit
 def max_numba(a, b):
@@ -200,6 +202,20 @@ class Model:
             init_value=params["nutrient.max"],
             comm=self.comm,
         )
+
+        # if random nutrient init, loop through all locations and set to random number
+        # sampled from a random uniform distribution
+        if params["nutrient.type"] == 0:
+            local_bounds = self.grid.get_local_bounds()
+            nutrient_rng = np.random.default_rng(params["nutrient.seed"])
+            for x in range(local_bounds.xmin, local_bounds.xmin + local_bounds.xextent):
+                for y in range(
+                    local_bounds.ymin, local_bounds.ymin + local_bounds.yextent
+                ):
+                    self.value_layer.set(
+                        dpt(x, y), nutrient_rng.uniform(0, 2 * params["nutrient.max"])
+                    )
+
         self.context.add_value_layer(self.value_layer)
 
         # initialize the logging
