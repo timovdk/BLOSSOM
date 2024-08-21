@@ -378,7 +378,7 @@ class Model:
                 if eq(organism_group.type, 0):
                     # get dispersal options
                     options = von_neumann_r1(x, y, z)
-                    # Finally, normalize probabilities so that they sum up to 1 and chose dispersal location
+                    # Finally, normalize probabilities so that they sum up to 1 and choose dispersal location
                     # move to the found location
                     organism_group.pt = self.grid.move(
                         organism_group,
