@@ -1,6 +1,6 @@
 agent_log_file: 'outputs/agent_log.csv'
 random.seed: 9456183535
-initial_distribution_type: 1 #0 = random, 1 = clustered
+initial_distribution_type: 0 #0 = random, 1 = clustered
 initial_distribution_seed: 23409
 nutrient.type: 1 # 0 = random, 1 = uniform 
 nutrient.seed: 12473892
