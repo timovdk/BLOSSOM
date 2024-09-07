@@ -4,7 +4,7 @@
 #SBATCH -n 4
 #SBATCH --mem=6gb
 #SBATCH --mail-type=END,FAIL
-#SBATCH --time=48:00:00
+#SBATCH --time=72:00:00
 
 # Create a directory for this job on the node
 cd /local
@@ -27,11 +27,70 @@ echo "Number of MPI ranks per node: "$SLURM_TASKS_PER_NODE
 echo "Name of nodes used          : "$SLURM_JOB_NODELIST
 echo "Starting worker: "
 
-# Run the job
-mpirun python3 blossom_2d.py inputs/data_collection_2d.yaml
+# Run the job, first the 4 runs for stochasticity analysis, then the remaining.
+echo "1/16"
+mpirun python3 blossom_2d.py inputs/random_1.yaml
+mv outputs/random_1.csv ${SLURM_SUBMIT_DIR}/outputs
 
-# Copy output back to the master, comment with # if not used
-mv outputs ${SLURM_SUBMIT_DIR}
+echo "2/16"
+mpirun python3 blossom_2d.py inputs/clustered_1.yaml
+mv outputs/clustered_1.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "3/16"
+mpirun python3 blossom_2d.py inputs/random_1_2.yaml
+mv outputs/random_1_2.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "4/16"
+mpirun python3 blossom_2d.py inputs/clustered_1_2.yaml
+mv outputs/clustered_1_2.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "5/16"
+mpirun python3 blossom_2d.py inputs/random_2.yaml
+mv outputs/random_2.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "6/16"
+mpirun python3 blossom_2d.py inputs/clustered_2.yaml
+mv outputs/clustered_2.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "7/16"
+mpirun python3 blossom_2d.py inputs/random_2_2.yaml
+mv outputs/random_2_2.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "8/16"
+mpirun python3 blossom_2d.py inputs/clustered_2_2.yaml
+mv outputs/clustered_2_2.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "9/16"
+mpirun python3 blossom_2d.py inputs/random_3.yaml
+mv outputs/random_3.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "10/16"
+mpirun python3 blossom_2d.py inputs/random_4.yaml
+mv outputs/random_4.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "11/16"
+mpirun python3 blossom_2d.py inputs/random_5.yaml
+mv outputs/random_5.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "12/16"
+mpirun python3 blossom_2d.py inputs/random_6.yaml
+mv outputs/random_6.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "13/16"
+mpirun python3 blossom_2d.py inputs/clustered_3.yaml
+mv outputs/clustered_3.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "14/16"
+mpirun python3 blossom_2d.py inputs/clustered_4.yaml
+mv outputs/clustered_4.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "15/16"
+mpirun python3 blossom_2d.py inputs/clustered_5.yaml
+mv outputs/clustered_5.csv ${SLURM_SUBMIT_DIR}/outputs
+
+echo "16/16"
+mpirun python3 blossom_2d.py inputs/clustered_6.yaml
+mv outputs/clustered_6.csv ${SLURM_SUBMIT_DIR}/outputs
 
 # we step out of the scratch directory and remove it
 cd ..
