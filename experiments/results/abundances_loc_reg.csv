@@ -1,0 +1,16 @@
+filename,r,mae,mdae,r2
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,0.1507398148148148,0.03591666666666665,0.8093965745822223
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,0.11196602564102559,0.029467948717948778,0.907363385159691
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,0.08870092592592588,0.010749999999999982,0.944523989621215
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,0.07421131436314359,0.009611788617886197,0.9607563085598536
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,0.06371956587735278,0.01046844262295081,0.9722413262520603
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,0.0720805555555554,0.06259166666666668,0.9949428044833522
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,0.0941127492877492,0.031196153846153818,0.9916460889229719
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,0.09778796296296288,0.05274166666666602,0.9877797210246515
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,0.11334351851851837,0.04764878048780488,0.9869413499457025
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,0.11919652398299926,0.06167650273224046,0.9849513891988706

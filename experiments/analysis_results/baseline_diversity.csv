@@ -1,0 +1,13 @@
+filename,init_locs,seed,0,1,2,3,4,5,6,7,8
+random_1,R1,0,True,True,True,True,True,True,True,True,False
+random_2,R1,1,True,True,True,True,True,True,True,True,True
+random_3,R1,2,True,True,True,True,True,True,True,True,True
+random_4,R1,3,True,True,True,True,True,True,True,True,True
+random_5,R1,4,True,True,True,True,True,True,True,True,True
+random_6,R1,5,True,True,True,True,True,True,True,True,True
+clustered_1,C1,0,True,True,True,True,True,True,True,True,True
+clustered_2,C1,1,True,True,True,True,True,True,True,True,True
+clustered_3,C1,2,True,True,True,True,True,True,True,True,True
+clustered_4,C1,3,True,True,True,True,True,True,True,True,True
+clustered_5,C1,4,True,True,True,True,True,True,True,True,True
+clustered_6,C1,5,True,True,True,True,True,True,True,True,True

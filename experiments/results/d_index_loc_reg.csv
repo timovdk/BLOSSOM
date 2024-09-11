@@ -1,0 +1,136 @@
+filename,r,type_id,mae,mdae,r2
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,0,0.5864258570225807,0.6644925864846127,-3.9305074207024395
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,0,0.6023984725936138,0.6250570267895194,-4.054502727535335
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,0,0.5698853644636459,0.5704258654417648,-3.635072993104713
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,0,0.5884988722043221,0.5890553970179826,-3.8220975517730773
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,0,0.5719852953739181,0.588357827787111,-3.543867133574625
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,1,0.6672766349893205,0.7031294774761387,-4.533371544724187
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,1,0.6212673103469295,0.6904813347348386,-3.8918649745018206
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,1,0.5496056358210549,0.5261453504920117,-2.909418106567687
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,1,0.5806771266621182,0.655703499592651,-3.3502579700177124
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,1,0.5533580756428486,0.6379766044074342,-2.94839390920891
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,2,0.6919057533132942,0.78964815300181,-5.384533668262812
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,2,0.6457213334572516,0.7307906053320036,-4.6010211219032335
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,2,0.526861277575347,0.5466586095473898,-2.853405993879466
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,2,0.5919162647041138,0.6724761978026194,-3.7026960594274883
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,2,0.5838547766159341,0.6706199970620297,-3.557226222769449
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,3,0.6711129325871955,0.7624436751762054,-4.975283199504767
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,3,0.562556571105239,0.6272260152498987,-3.368080558518802
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,3,0.5288492803575959,0.5466586095473898,-2.922603685465022
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,3,0.5612891872473265,0.5890553970179826,-3.2371336600468714
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,3,0.5629266233912955,0.6205606839911427,-3.230086191994463
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,4,0.5215222706851941,0.5354592670675824,-2.9559647334820953
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,4,0.46784584373397675,0.4940471213378657,-2.2457854102082493
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,4,0.44476253272403377,0.4787284581219083,-2.0387525193694316
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,4,0.4653019847341225,0.52509704339541,-2.065214499119966
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,4,0.43597955062902205,0.5111166775233817,-1.791770148926247
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,5,0.6460058535476877,0.7031294774761387,-4.766303936235093
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,5,0.5801811180920458,0.6798342825606538,-3.7799949696683557
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,5,0.45659081765244736,0.4364360141623854,-2.049837556520866
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,5,0.5806262501146282,0.5821207576755414,-3.4919497016792818
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,5,0.5806284647800967,0.6205606839911427,-3.4740332932084943
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,6,0.7031327057887844,0.8302477370096977,-6.24090530559358
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,6,0.6209224939299011,0.6670731338350946,-4.720055263044747
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,6,0.5015095197916941,0.4983826581578116,-2.858052479592319
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,6,0.48279354558102483,0.507860035365636,-2.664564116298518
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,6,0.4309142569102336,0.4629576735957623,-1.9649935289427591
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,7,0.8566534359478197,0.9676790838720032,-7.972351446529556
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,7,0.8566534359478197,0.9676790838720032,-7.972351446529556
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,7,0.8566534359478197,0.9676790838720032,-7.972351446529556
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,7,0.8108693728818774,0.8950634542219239,-7.078332913354316
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,7,0.7408287171697938,0.8464056015950616,-5.742671819916254
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,8,0.7663109243325555,0.8733826581578116,-6.375008668118915
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,8,0.6538005032880546,0.7773015873015873,-4.593724205244603
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,8,0.5875181957571842,0.6051897926193697,-3.5633741210613152
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,8,0.62185149142899,0.7057906053320036,-4.102431179913538
+['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,8,0.6078741020486226,0.7241239386653369,-3.8344289681059847
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,0,0.5935540637071012,0.617731733878058,-4.015957773351982
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,0,0.5797046135015639,0.5961697013527214,-3.653329331922798
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,0,0.5796689737401813,0.6355888520641715,-3.5715752676864447
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,0,0.5514649216866401,0.5689538203649986,-3.15094675418767
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,0,0.5599365034173444,0.6145542503599447,-3.2179795112579814
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,1,0.651009031145341,0.7371950508396725,-4.286336720493356
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,1,0.626691699748871,0.6957878318532431,-3.9180945254020587
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,1,0.6157687181880256,0.6847000607801567,-3.669111068832999
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,1,0.5865004621051328,0.6678662181351002,-3.231206333806469
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,1,0.6065677734100281,0.7074728837061655,-3.5196348831681616
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,2,0.4859255567404476,0.4489516116841419,-2.343607794396831
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,2,0.4728467583631944,0.5270193772519074,-2.074039885597697
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,2,0.5113263473466296,0.5451425122868072,-2.526145391582805
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,2,0.5131105095990396,0.5491447843863726,-2.5852448950106406
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,2,0.5320404552838129,0.565658896033082,-2.7533755674517297
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,3,0.5763681767943792,0.617731733878058,-3.4760436644880457
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,3,0.5584039065067345,0.5865553982952579,-3.1649926873881187
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,3,0.49551504553716025,0.5451425122868072,-2.2341055672960173
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,3,0.48331229846659085,0.5446421368288166,-2.152106234702318
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,3,0.510403932803134,0.5778301063753711,-2.401385254174689
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,4,0.5453125987129218,0.5654520606063804,-3.3502752106726605
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,4,0.47480526139324497,0.5310024917456828,-2.338262521150838
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,4,0.49764273657843244,0.49788323271916574,-2.560976990991409
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,4,0.45719823300702445,0.513530269925635,-2.143508739090062
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,4,0.48831180769460886,0.5201981511150586,-2.380093783672426
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,5,0.4824728727955854,0.5040892204992675,-2.2966843251418765
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,5,0.5071959683236863,0.5027189536480259,-2.429957760657122
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,5,0.5548925473482524,0.5742419813433526,-3.0143938346131733
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,5,0.5376397274196487,0.5755638192786909,-2.7929674806612392
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,5,0.568194291566805,0.639460069565307,-3.177844915925876
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,6,0.5743619451805939,0.6428686912563011,-3.926836285837587
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,6,0.4093047878093617,0.4079348459415129,-1.7322103642652982
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,6,0.44819168315474184,0.4977874195493803,-2.02175498627172
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,6,0.4385176426149289,0.5130790394179396,-1.9101950338672027
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,6,0.47295381487897853,0.5567001208462881,-2.2595371568161786
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,7,0.7640608433552272,0.8010124172053366,-6.206673866180239
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,7,0.6637547500337195,0.7338454728594985,-4.4622083941474004
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,7,0.45618965810391887,0.4381363057946255,-1.7009933252716114
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,7,0.34588112235077695,0.35364394297889357,-0.6610641785819664
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,7,0.40876686561716585,0.40960851330143266,-1.1833540924240817
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",1,8,0.7690342358793966,0.8733826581578116,-6.404046728123984
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",2,8,0.6121801114633811,0.6627655501951273,-3.7277528838719247
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",3,8,0.6267398926399453,0.7307906053320036,-3.961122159362362
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",4,8,0.6159759462208201,0.6759265755930334,-3.778232639735795
+"['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
+ 'clustered_6']",5,8,0.47038094794722884,0.5356957362873966,-1.924757481753426
