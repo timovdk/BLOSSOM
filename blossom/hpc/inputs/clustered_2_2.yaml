@@ -4,7 +4,7 @@ initial_distribution_type: 1 #0 = random, 1 = clustered
 initial_distribution_seed: 89434
 nutrient.type: 1 # 0 = random, 1 = uniform 
 nutrient.seed: 12473892
-nutrient.max: 0.0078
+nutrient.max: 0.0075
 stop.at: 600
 world.width: 400
 world.height: 400

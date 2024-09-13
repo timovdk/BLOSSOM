@@ -1,6 +1,6 @@
-agent_log_file: 'outputs/agent_log.csv'
-random.seed: 9456183535
-initial_distribution_type: 0 #0 = random, 1 = clustered
+agent_log_file: 'outputs/clustered_17.csv'
+random.seed: 42612084
+initial_distribution_type: 1 #0 = random, 1 = clustered
 initial_distribution_seed: 23409
 nutrient.type: 1 # 0 = random, 1 = uniform 
 nutrient.seed: 12473892
@@ -8,7 +8,6 @@ nutrient.max: 0.0075
 stop.at: 600
 world.width: 400
 world.height: 400
-world.depth: 25
 buffer_size: 6
 trophic_network: '{"directed": true, "multigraph": false, "graph": {}, "nodes": [{"organism": "bacteria", "id": 0}, {"organism": "fungi", "id": 1}, {"organism": "root-feeding nematodes", "id": 2}, {"organism": "bacterivorous nematodes", "id": 3}, {"organism": "fungivorous nematodes", "id": 4}, {"organism": "omnivorous nematodes", "id": 5}, {"organism": "fungivorous mites", "id": 6}, {"organism": "omnivorous mites", "id": 7}, {"organism": "collembolans", "id": 8}, {"organism": "som", "id": 9}], "links": [{"source": 0, "target": 3}, {"source": 0, "target": 5}, {"source": 1, "target": 4}, {"source": 1, "target": 6}, {"source": 1, "target": 8}, {"source": 2, "target": 5}, {"source": 2, "target": 7}, {"source": 3, "target": 5}, {"source": 3, "target": 7}, {"source": 4, "target": 5}, {"source": 4, "target": 7}, {"source": 5, "target": 7}, {"source": 6, "target": 7}, {"source": 8, "target": 7}, {"source": 9, "target": 0}, {"source": 9, "target": 1}, {"source": 9, "target": 2}]}'
 organism_parameters: [
