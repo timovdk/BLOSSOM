@@ -21,7 +21,7 @@ organism_parameters: [
         age_max: 1,
         biomass_max: 0.000975,
         biomass_reproduction: 0.0005,
-        k: 0.027,
+        k: 0.026,
     },
     {
         label: 'Fungi',
@@ -32,7 +32,7 @@ organism_parameters: [
         age_max: 9,
         biomass_max: 0.001112,
         biomass_reproduction: 0.001112,
-        k: 0.049,
+        k: 0.047,
     },
     {
         label: 'Root-feeding Nematodes',
@@ -43,7 +43,7 @@ organism_parameters: [
         age_max: 10,
         biomass_max: 0.001129,
         biomass_reproduction: 0.0006,
-        k: 0.154,
+        k: 0.15,
     },
     {
         label: 'Bacterivorous Nematodes',
