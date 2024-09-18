@@ -1,16 +1,46 @@
 filename,r,mae,mdae,r2
-['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],1,0.1507398148148148,0.03591666666666665,0.8093965745822223
-['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],2,0.11196602564102559,0.029467948717948778,0.907363385159691
-['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],3,0.08870092592592588,0.010749999999999982,0.944523989621215
-['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],4,0.07421131436314359,0.009611788617886197,0.9607563085598536
-['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'],5,0.06371956587735278,0.01046844262295081,0.9722413262520603
+"['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'
+ 'random_7' 'random_8' 'random_9' 'random_10' 'random_11' 'random_12'
+ 'random_13' 'random_14' 'random_15' 'random_16' 'random_17' 'random_18'
+ 'random_19' 'random_20']",1,0.09351222222222219,0.013144999999999993,0.9506379003686047
+"['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'
+ 'random_7' 'random_8' 'random_9' 'random_10' 'random_11' 'random_12'
+ 'random_13' 'random_14' 'random_15' 'random_16' 'random_17' 'random_18'
+ 'random_19' 'random_20']",2,0.08729957264957267,0.011440384615384613,0.9634752342664175
+"['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'
+ 'random_7' 'random_8' 'random_9' 'random_10' 'random_11' 'random_12'
+ 'random_13' 'random_14' 'random_15' 'random_16' 'random_17' 'random_18'
+ 'random_19' 'random_20']",3,0.09067444444444439,0.03453500000000001,0.9653548565827297
+"['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'
+ 'random_7' 'random_8' 'random_9' 'random_10' 'random_11' 'random_12'
+ 'random_13' 'random_14' 'random_15' 'random_16' 'random_17' 'random_18'
+ 'random_19' 'random_20']",4,0.08570154471544707,0.03587646341463416,0.9696978803314816
+"['random_1' 'random_2' 'random_3' 'random_4' 'random_5' 'random_6'
+ 'random_7' 'random_8' 'random_9' 'random_10' 'random_11' 'random_12'
+ 'random_13' 'random_14' 'random_15' 'random_16' 'random_17' 'random_18'
+ 'random_19' 'random_20']",5,0.08200413479052826,0.0321579508196721,0.9719819217719746
 "['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
- 'clustered_6']",1,0.0720805555555554,0.06259166666666668,0.9949428044833522
+ 'clustered_6' 'clustered_7' 'clustered_8' 'clustered_9' 'clustered_10'
+ 'clustered_11' 'clustered_12' 'clustered_13' 'clustered_14'
+ 'clustered_15' 'clustered_16' 'clustered_17' 'clustered_18'
+ 'clustered_19' 'clustered_20']",1,0.08619666666666667,0.02819000000000002,0.9728455596986822
 "['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
- 'clustered_6']",2,0.0941127492877492,0.031196153846153818,0.9916460889229719
+ 'clustered_6' 'clustered_7' 'clustered_8' 'clustered_9' 'clustered_10'
+ 'clustered_11' 'clustered_12' 'clustered_13' 'clustered_14'
+ 'clustered_15' 'clustered_16' 'clustered_17' 'clustered_18'
+ 'clustered_19' 'clustered_20']",2,0.07783200854700852,0.035052499999999986,0.9792496611937023
 "['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
- 'clustered_6']",3,0.09778796296296288,0.05274166666666602,0.9877797210246515
+ 'clustered_6' 'clustered_7' 'clustered_8' 'clustered_9' 'clustered_10'
+ 'clustered_11' 'clustered_12' 'clustered_13' 'clustered_14'
+ 'clustered_15' 'clustered_16' 'clustered_17' 'clustered_18'
+ 'clustered_19' 'clustered_20']",3,0.06672222222222218,0.0450025,0.9864833367936249
 "['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
- 'clustered_6']",4,0.11334351851851837,0.04764878048780488,0.9869413499457025
+ 'clustered_6' 'clustered_7' 'clustered_8' 'clustered_9' 'clustered_10'
+ 'clustered_11' 'clustered_12' 'clustered_13' 'clustered_14'
+ 'clustered_15' 'clustered_16' 'clustered_17' 'clustered_18'
+ 'clustered_19' 'clustered_20']",4,0.059191056910569126,0.020953719512195157,0.9875113530138244
 "['clustered_1' 'clustered_2' 'clustered_3' 'clustered_4' 'clustered_5'
- 'clustered_6']",5,0.11919652398299926,0.06167650273224046,0.9849513891988706
+ 'clustered_6' 'clustered_7' 'clustered_8' 'clustered_9' 'clustered_10'
+ 'clustered_11' 'clustered_12' 'clustered_13' 'clustered_14'
+ 'clustered_15' 'clustered_16' 'clustered_17' 'clustered_18'
+ 'clustered_19' 'clustered_20']",5,0.05644332422586521,0.018077827868852453,0.9880405329875839
