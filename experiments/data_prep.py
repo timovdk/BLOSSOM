@@ -9,10 +9,10 @@ sample_times = [0, 100, 200, 300, 400, 500, 600]
 x_max = 400
 y_max = 400
 
-#### Sample Simulations
-##
-##
-####
+### Sample Simulations
+#
+#
+###
 def retrieve_ids_per_sample_von_neumann(points, data, r):
     samples =  [ [] for _ in range(len(points)) ]
     for ind, row in data.iterrows():
@@ -370,7 +370,7 @@ def compute_d_index_pairwise_estimates_sample(counts, num_types, num_samples):
     for idx in range(num_types):
         total_count_by_type.append(counts[str(idx)].sum())
         
-    for sample_id in range(len(df2['sample_id'].unique())):
+    for sample_id in range(len(counts['sample_id'].unique())):
         sample_counts = counts[counts['sample_id'] == sample_id]       
         for t in range(num_types):  
             t_count = sample_counts[str(t)].values[0]
@@ -409,29 +409,33 @@ def compute_d_index_pairwise_estimates_sample(counts, num_types, num_samples):
 
     return D_matrix
 
-def compute_d_index_pairwise_estimates_plot_temp(counts, num_types):
+def compute_d_index_pairwise_estimates_plot_temporal(counts, num_types):
     total_count_by_type = []
     D_matrix = np.zeros((num_types, num_types))
     neighborhood_counts = np.zeros((num_types, num_types)) 
     
     for idx in range(num_types):
         total_count_by_type.append(counts[str(idx)].sum())
-              
-    for t in range(num_types):  
-        t_count = counts[str(t)].values[0]
-        for t_prime in range(num_types):
-            if t_count > 0 and total_count_by_type[t] > 0 and total_count_by_type[t_prime] > 0:
-                prop_t = t_count / total_count_by_type[t]
-                prop_t_prime = counts[str(t_prime)].values[0] / total_count_by_type[t_prime]
-                # Calculate the absolute difference
-                D = abs(prop_t - prop_t_prime)
-                # Accumulate the difference in the respective matrix
-                D_matrix[t][t_prime] += D
-                neighborhood_counts[t][t_prime] += 1
-                if t != t_prime:
-                    # Ensure symmetric accumulation
-                    D_matrix[t_prime][t] += D
-                    neighborhood_counts[t_prime][t] += 1
+        
+    for sample_id in range(len(counts['sample_id'].unique())):
+        sample_counts = counts[counts['sample_id'] == sample_id]       
+        for t in range(num_types):  
+            t_count = sample_counts[str(t)].values[0]
+            for t_prime in range(num_types):
+                if t_count > 0 and total_count_by_type[t] > 0 and total_count_by_type[t_prime] > 0:
+                    prop_t = t_count / total_count_by_type[t]
+                    prop_t_prime = sample_counts[str(t_prime)].values[0] / total_count_by_type[t_prime]
+
+                    # Calculate the absolute difference
+                    D = abs(prop_t - prop_t_prime)
+
+                    # Accumulate the difference in the respective matrix
+                    D_matrix[t][t_prime] += D
+                    neighborhood_counts[t][t_prime] += 1
+                    if t != t_prime:
+                        # Ensure symmetric accumulation
+                        D_matrix[t_prime][t] += D
+                        neighborhood_counts[t_prime][t] += 1
     
     # Average the D-index values
     for t in range(num_types):
@@ -456,13 +460,11 @@ indices = pd.DataFrame(columns=['filename', 'sample_id', 'sample_time', 'type_id
 
 for idx, filename in enumerate(filenames):
     df1 = data[data['filename'] == filename]
-    file_indices = []
     for st in sample_times:
         for r in rs:
             df2 = df1[df1['r'] == r]
             df3 = df2[df2['sample_time'] == st]
             d_index = compute_d_index_pairwise_estimates_sample(df3, 9, len(df2['sample_id'].unique()))
-            file_indices.append(d_index)
 
             for sample_id, rows in enumerate(d_index):
                 for type_id, row in enumerate(rows):
@@ -474,13 +476,11 @@ indices = pd.DataFrame(columns=['filename', 'sample_time', 'type_id', 'r', '0', 
 
 for idx, filename in enumerate(filenames):
     df1 = data[data['filename'] == filename]
-    file_indices = []
     for st in sample_times:
         for r in rs:
             df2 = df1[df1['r'] == r]
             df3 = df2[df2['sample_time'] == st]       
-            d_index = compute_d_index_pairwise_estimates_plot_temp(df3, 9)
-            file_indices.append(d_index)
+            d_index = compute_d_index_pairwise_estimates_plot_temporal(df3, 9)
 
             for type_id, row in enumerate(d_index):
                 indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'sample_time': [st], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
@@ -493,12 +493,10 @@ indices = pd.DataFrame(columns=['filename', 'type_id', 'r', '0', '1', '2', '3', 
 
 for idx, filename in enumerate(filenames):
     df1 = data[data['filename'] == filename]
-    file_indices = []
     for r in rs:
         df2 = df1[df1['r'] == r]
-        df3 = df2.groupby(['filename', 'r'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()     
-        d_index = compute_d_index_pairwise_estimates_plot_temp(df3, 9)
-        file_indices.append(d_index)
+        df3 = df2.groupby(['filename', 'r', 'sample_id'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()   
+        d_index = compute_d_index_pairwise_estimates_plot_temporal(df3, 9)
         for type_id, row in enumerate(d_index):
             indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
 indices.to_csv('prep_out/estimated_d_index_temporal_w.csv', index=False)
@@ -513,13 +511,11 @@ indices = pd.DataFrame(columns=['filename', 'sample_id', 'sample_time', 'type_id
 
 for idx, filename in enumerate(filenames):
     df1 = data[data['filename'] == filename]
-    file_indices = []
     for st in sample_times:
         for r in rs:
             df2 = df1[df1['r'] == r]
             df3 = df2[df2['sample_time'] == st]
             d_index = compute_d_index_pairwise_estimates_sample(df3, 9, len(df2['sample_id'].unique()))
-            file_indices.append(d_index)
 
             for sample_id, rows in enumerate(d_index):
                 for type_id, row in enumerate(rows):
@@ -531,13 +527,11 @@ indices = pd.DataFrame(columns=['filename', 'sample_time', 'type_id', 'r', '0', 
 
 for idx, filename in enumerate(filenames):
     df1 = data[data['filename'] == filename]
-    file_indices = []
     for st in sample_times:
         for r in rs:
             df2 = df1[df1['r'] == r]
             df3 = df2[df2['sample_time'] == st]       
-            d_index = compute_d_index_pairwise_estimates_plot_temp(df3, 9)
-            file_indices.append(d_index)
+            d_index = compute_d_index_pairwise_estimates_plot_temporal(df3, 9)
 
             for type_id, row in enumerate(d_index):
                 indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'sample_time': [st], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
@@ -548,12 +542,11 @@ indices = pd.DataFrame(columns=['filename', 'type_id', 'r', '0', '1', '2', '3', 
 
 for idx, filename in enumerate(filenames):
     df1 = data[data['filename'] == filename]
-    file_indices = []
     for r in rs:
         df2 = df1[df1['r'] == r]
-        df3 = df2.groupby(['filename', 'r'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()     
-        d_index = compute_d_index_pairwise_estimates_plot_temp(df3, 9)
-        file_indices.append(d_index)
+        df3 = df2.groupby(['filename', 'r', 'sample_id'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()   
+        d_index = compute_d_index_pairwise_estimates_plot_temporal(df3, 9)
+
         for type_id, row in enumerate(d_index):
             indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
 indices.to_csv('prep_out/estimated_d_index_temporal_reg.csv', index=False)

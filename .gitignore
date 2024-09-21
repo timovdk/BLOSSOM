@@ -6,6 +6,6 @@
 *.pdf
 deprecated
 
-!experiments/A_prep_out/*
-!experiments/B_analysis_out/*
+!experiments/prep_out/*
+!experiments/analysis_out/*
 !figures/*
