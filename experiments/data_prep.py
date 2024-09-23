@@ -113,13 +113,11 @@ abundances_df = pd.DataFrame(columns=['filename', 'r', 'sample_time', 'sample_id
 
 for idx, filename in enumerate(filenames):
     df1 = data[data['filename'] == filename]
-    file_abundances = []
     for st in sample_times:
+        df2 = df1[df1['sample_time'] == st]
         for r in rs:
-            df2 = df1[df1['r'] == r]
-            df3 = df2[df2['sample_time'] == st]  
+            df3 = df2[df2['r'] == r]
             plot_abundances_per_sample = compute_abundance_estimates(df3, 9, r)
-            file_abundances.append(plot_abundances_per_sample)
 
             for i, sample_abundances in enumerate(plot_abundances_per_sample):
                 abundances_df = pd.concat([abundances_df, pd.DataFrame({'filename': [filename], 'r': r, 'sample_time': [st], 'sample_id': i, '0': sample_abundances[0], '1': sample_abundances[1], '2': sample_abundances[2], '3': sample_abundances[3], '4': sample_abundances[4], '5': sample_abundances[5], '6': sample_abundances[6], '7': sample_abundances[7], '8': sample_abundances[8]})])
@@ -136,13 +134,11 @@ abundances_df = pd.DataFrame(columns=['filename', 'r', 'sample_time', 'sample_id
 
 for idx, filename in enumerate(filenames):
     df1 = data[data['filename'] == filename]
-    file_abundances = []
     for st in sample_times:
+        df2 = df1[df1['sample_time'] == st]
         for r in rs:
-            df2 = df1[df1['r'] == r]
-            df3 = df2[df2['sample_time'] == st]  
+            df3 = df2[df2['r'] == r]  
             plot_abundances_per_sample = compute_abundance_estimates(df3, 9, r)
-            file_abundances.append(plot_abundances_per_sample)
 
             for i, sample_abundances in enumerate(plot_abundances_per_sample):
                 abundances_df = pd.concat([abundances_df, pd.DataFrame({'filename': [filename], 'r': r, 'sample_time': [st], 'sample_id': i, '0': sample_abundances[0], '1': sample_abundances[1], '2': sample_abundances[2], '3': sample_abundances[3], '4': sample_abundances[4], '5': sample_abundances[5], '6': sample_abundances[6], '7': sample_abundances[7], '8': sample_abundances[8]})])
