@@ -3,7 +3,7 @@ A soil biota agent based model (ABM) based on [Repast4Py](https://repast.github.
 
 The `./blossom` folder contains the model itself, notebook to create trophic networks, input files, and output files. The `./blossom_viz` folder contains notebooks for model run visualizations. The `./experiments` folder contains notebooks for analysis. The `./figures` folder contains notebooks used to create the thesis figures, including result and discussion visualizations.
 
-<img src="output.png" alt="A 2D line diagram with ticks from 0 to 1000 on the x axis, and counts of agents in the model from 0 to 4000 on the y axis. There are twelve coloroued lines that show the evolution of counts per organism group over time."/>
+![alt text](random_1.gif)
 
 ## Install/Run instructions
 Tested for Windows with [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) Ubuntu 22.04, and Python 3.10.7. 
