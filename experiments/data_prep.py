@@ -1,548 +1,570 @@
-import pandas as pd
 import numpy as np
-import gc
+import polars as pl
+from tqdm import tqdm
 
-filenames = ['random_1', 'random_2', 'random_3', 'random_4','random_5', 'random_6', 'random_7', 'random_8', 'random_9', 'random_10', 'random_11', 'random_12', 'random_13', 'random_14','random_15','random_16','random_17','random_18','random_19','random_20', 'clustered_1', 'clustered_2', 'clustered_3', 'clustered_4','clustered_5', 'clustered_6', 'clustered_7', 'clustered_8', 'clustered_9', 'clustered_10', 'clustered_11', 'clustered_12', 'clustered_13', 'clustered_14','clustered_15','clustered_16','clustered_17','clustered_18','clustered_19','clustered_20']
-path = "../blossom/hpc/outputs/"
+init_types = ["random", "clustered"]
+trials = 20
+filenames = [
+    f"{init_type}_{trial}" for init_type in init_types for trial in range(1, trials + 1)
+]
+path = "./raw_data/"
 rs = [1, 2, 3, 4, 5]
 sample_times = [0, 100, 200, 300, 400, 500, 600]
 x_max = 400
 y_max = 400
+num_types = 9
 
-### Sample Simulations
-#
-#
-###
-def retrieve_ids_per_sample_von_neumann(points, data, r):
-    samples =  [ [] for _ in range(len(points)) ]
-    for ind, row in data.iterrows():
-        for index, point in enumerate(points):
-            x1, y1 = point
-            x2 = row.x
-            y2 = row.y
 
-            if (abs(x1 - x2) % 400 + abs(y1 - y2) % 400) <= r:
-                samples[index].append(ind)
+# Retrieve DataFrame indices that are within Von Neumann neighbourhood defined by centers and r
+def retrieve_ids_per_sample_von_neumann(centers, data_x, data_y, r):
+    samples = [[] for _ in range(len(centers))]
+
+    for i, (center_x, center_y) in enumerate(centers):
+        distances = (np.abs(center_x - data_x) % 400) + (
+            np.abs(center_y - data_y) % 400
+        )
+        samples[i] = np.where(distances <= r)[0].tolist()
+
     return samples
 
-def wageningen_w():
-    return [(50, 50), (50, 150), (50, 250), (50, 350), (125, 150), (175, 250), (275, 150), (225, 250), (350, 50), (350, 150), (350, 250), (350, 350)]
 
-def systematic_regular():
-    return [(50, 50), (50, 150), (50, 250), (50, 350), (150, 50), (150, 150), (150, 250), (150, 350), (250, 50), (250, 150), (250, 250), (250, 350), (350, 50), (350, 150), (350, 250), (350, 350)]
+# Sample centers
+selected_points_w = [
+    (50, 50),
+    (50, 150),
+    (50, 250),
+    (50, 350),
+    (125, 150),
+    (175, 250),
+    (275, 150),
+    (225, 250),
+    (350, 50),
+    (350, 150),
+    (350, 250),
+    (350, 350),
+]
+selected_points_reg = [
+    (50, 50),
+    (50, 150),
+    (50, 250),
+    (50, 350),
+    (150, 50),
+    (150, 150),
+    (150, 250),
+    (150, 350),
+    (250, 50),
+    (250, 150),
+    (250, 250),
+    (250, 350),
+    (350, 50),
+    (350, 150),
+    (350, 250),
+    (350, 350),
+]
 
-print('Soil Sample Sims')
-selected_points_w = wageningen_w()
-sample_counts_w = pd.DataFrame(columns=['filename', 'r', 'sample_time', 'sample_id', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
+# Store results in lists
+sample_counts_w_list = []
+sample_counts_reg_list = []
 
-selected_points_reg = systematic_regular()
-sample_counts_reg = pd.DataFrame(columns=['filename', 'r', 'sample_time', 'sample_id', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
+# Process each file
+for idx, filename in tqdm(
+    enumerate(filenames), desc="Computing Abundances per Simulated Sample"
+):
+    df = pl.read_parquet(path + filename + ".parquet")
 
-for idx, filename in enumerate(filenames):
-    print(idx, '/', len(filenames))
-    df = pd.read_csv(path + filename + ".csv")
+    data_x = df["x"].to_numpy()
+    data_y = df["y"].to_numpy()
+    data_type = df["type"].to_numpy()
+
     for st in sample_times:
-        data = df[df["tick"] == st]
-        data = data.reset_index(drop=True)
+        # Filter data by time step
+        mask = df["tick"] == st
+        filtered_x = data_x[mask]
+        filtered_y = data_y[mask]
+        filtered_type = data_type[mask]
 
         for r in rs:
-            samples_w = retrieve_ids_per_sample_von_neumann(selected_points_w, data, r)
-            samples_reg = retrieve_ids_per_sample_von_neumann(selected_points_reg, data, r)
+            # Get DataFrame indices of organisms within Von Neumann neighbourhood of samples
+            samples_w = retrieve_ids_per_sample_von_neumann(
+                selected_points_w, filtered_x, filtered_y, r
+            )
+            samples_reg = retrieve_ids_per_sample_von_neumann(
+                selected_points_reg, filtered_x, filtered_y, r
+            )
 
-            sample_site_counts_w = []
+            # Count organism types
             for i, sample in enumerate(samples_w):
-                df2 = data.iloc[sample]
-                counts = df2['type'].value_counts().reindex(range(len(df["type"].unique())), fill_value=0)
-                sample_counts_w = pd.concat([sample_counts_w, pd.DataFrame({'filename': [filename], 'sample_time': [st], 'r': [r], 'sample_id': [i], '0': [counts[0]], '1': [counts[1]], '2': [counts[2]], '3': [counts[3]], '4': [counts[4]], '5': [counts[5]], '6': [counts[6]], '7': [counts[7]], '8': [counts[8]]})])
+                unique, counts = np.unique(filtered_type[sample], return_counts=True)
+                type_counts = {str(t): 0 for t in range(9)}
+                type_counts.update(dict(zip(map(str, unique), counts)))
 
-            sample_site_counts_reg = []
+                sample_counts_w_list.append(
+                    {
+                        "filename": filename,
+                        "sample_time": st,
+                        "r": r,
+                        "sample_id": i,
+                        **type_counts,
+                    }
+                )
+
             for i, sample in enumerate(samples_reg):
-                df2 = data.iloc[sample]
-                counts = df2['type'].value_counts().reindex(range(len(df["type"].unique())), fill_value=0)
-                sample_counts_reg = pd.concat([sample_counts_reg, pd.DataFrame({'filename': [filename], 'sample_time': [st], 'r': [r], 'sample_id': [i], '0': [counts[0]], '1': [counts[1]], '2': [counts[2]], '3': [counts[3]], '4': [counts[4]], '5': [counts[5]], '6': [counts[6]], '7': [counts[7]], '8': [counts[8]]})])
-    del df
-    del data
-    gc.collect()
-            
-sample_counts_w.to_csv('prep_out/sample_counts_w.csv', index=False)
-sample_counts_reg.to_csv('prep_out/sample_counts_reg.csv', index=False)           
+                unique, counts = np.unique(filtered_type[sample], return_counts=True)
+                type_counts = {str(t): 0 for t in range(9)}
+                type_counts.update(dict(zip(map(str, unique), counts)))
 
-##### Abundance
-###   Baseline
-###
-#####
-print('Abundance prep')
-abundances_df = pd.DataFrame(columns=['filename', 'sample_time', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
+                sample_counts_reg_list.append(
+                    {
+                        "filename": filename,
+                        "sample_time": st,
+                        "r": r,
+                        "sample_id": i,
+                        **type_counts,
+                    }
+                )
 
-for idx, filename in enumerate(filenames):  
-    df = pd.read_csv(path + filename + ".csv")
+# Convert lists to DataFrame and save to CSV
+pl.DataFrame(sample_counts_w_list).write_csv("prep_out/sample_counts_w.csv")
+pl.DataFrame(sample_counts_reg_list).write_csv("prep_out/sample_counts_reg.csv")
+
+# Initialize a list to store the results
+abundances_list = []
+
+# Loop over filenames
+for idx, filename in tqdm(enumerate(filenames), desc="Computing Baseline Abundances"):
+    # Read the parquet file using polars
+    df = pl.read_parquet(path + filename + ".parquet")
+
+    # Loop over sample times
     for st in sample_times:
-        data = df[df["tick"] == st]
-        data = data.reset_index(drop=True)
-        counts = data['type'].value_counts().reindex(range(len(df["type"].unique())), fill_value=0)
+        # Filter the data for the current sample time
+        data = df.filter(pl.col("tick") == st)
 
-        counts /= 20000 # divide by total grams of plot
-        abundances_df = pd.concat([abundances_df, pd.DataFrame({'filename': [filename], 'sample_time': [st], '0': counts[0], '1': counts[1], '2': counts[2], '3': counts[3], '4': counts[4], '5': counts[5], '6': counts[6], '7': counts[7], '8': counts[8]})])
+        # Count occurrences of each type (0-8)
+        counts = (
+            data.group_by("type")
+            .agg(pl.len())
+            .select(
+                [pl.col("type"), (pl.col("len") / 20000).round(5).alias("abundance")]
+            )
+            .with_columns(
+                pl.col("type").cast(pl.Int32)  # Ensuring 'type' is an integer
+            )
+        )
 
-    del df
-    del data
-    gc.collect()
-    
-abundances_df.to_csv('prep_out/baseline_abundances.csv', index=False)
+        # Ensure all organism types (0-8) are included even if missing
+        # Create a range of types (0-8) and left join with the counts
+        all_types = pl.DataFrame({"type": list(range(9))})
+        counts = all_types.join(counts, on="type", how="left").fill_null(0)
 
-##### Abundance
-###   Estimates W
-###
-#####
-def compute_abundance_estimates(data, num_types, r):
-    cells = (2*(r**2))+(2*r)+1
+        # Append the result to the list
+        abundances_list.append(
+            {
+                "filename": filename,
+                "sample_time": st,
+                **{
+                    str(i): counts.filter(pl.col("type") == i)["abundance"].to_list()[0]
+                    for i in range(9)
+                },
+            }
+        )
+
+# Convert the list of dictionaries to a polars DataFrame and then to CSV
+abundances_df = pl.DataFrame(abundances_list)
+abundances_df.write_csv("prep_out/baseline_abundances.csv")
+
+
+# Compute normalized abundance estimates
+def compute_abundance_estimates(df, num_types, r):
+    cells = (2 * (r**2)) + (2 * r) + 1
     sample_weight = cells * 0.125
-    
-    norm_abundances_per_sample = []
-    for i in range(len(data)):
-        sample = data[data['sample_id'] == i]
-        abundances_norm = []
-        for t in range(num_types):
-            abundances_norm.append(float(sample[str(t)].iloc[0]/sample_weight))
-        norm_abundances_per_sample.append(abundances_norm)
-        
-    return norm_abundances_per_sample
 
-data = pd.read_csv('./prep_out/sample_counts_w.csv')
-abundances_df = pd.DataFrame(columns=['filename', 'r', 'sample_time', 'sample_id', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
+    # Normalize and round to 5 decimals
+    return df.select(
+        "filename",
+        "r",
+        "sample_time",
+        "sample_id",
+        *[pl.col(str(t)).cast(pl.Float64) / sample_weight for t in range(num_types)],
+    ).with_columns([pl.col(str(t)).round(5) for t in range(num_types)])
 
-for idx, filename in enumerate(filenames):
-    df1 = data[data['filename'] == filename]
+
+data_w = pl.read_csv("./prep_out/sample_counts_w.csv")
+data_reg = pl.read_csv("./prep_out/sample_counts_reg.csv")
+
+results_w = []
+results_reg = []
+
+for filename in tqdm(filenames, desc="Computing Estimated Abundances"):
+    df1_w = data_w.filter(pl.col("filename") == filename)
+    df1_reg = data_reg.filter(pl.col("filename") == filename)
+
     for st in sample_times:
-        df2 = df1[df1['sample_time'] == st]
+        df2_w = df1_w.filter(pl.col("sample_time") == st)
+        df2_reg = df1_reg.filter(pl.col("sample_time") == st)
+
         for r in rs:
-            df3 = df2[df2['r'] == r]
-            plot_abundances_per_sample = compute_abundance_estimates(df3, 9, r)
+            df3_w = df2_w.filter(pl.col("r") == r)
+            df3_reg = df2_reg.filter(pl.col("r") == r)
 
-            for i, sample_abundances in enumerate(plot_abundances_per_sample):
-                abundances_df = pd.concat([abundances_df, pd.DataFrame({'filename': [filename], 'r': r, 'sample_time': [st], 'sample_id': i, '0': sample_abundances[0], '1': sample_abundances[1], '2': sample_abundances[2], '3': sample_abundances[3], '4': sample_abundances[4], '5': sample_abundances[5], '6': sample_abundances[6], '7': sample_abundances[7], '8': sample_abundances[8]})])
-            
-abundances_df.to_csv('prep_out/estimated_abundances_w.csv', index=False)
+            # Compute normalized abundances
+            norm_abundances_w = compute_abundance_estimates(df3_w, num_types=9, r=r)
+            norm_abundances_reg = compute_abundance_estimates(df3_reg, num_types=9, r=r)
 
-##### Abundance
-###   Estimates Sys Reg
-###
-#####
+            # Append to results
+            results_w.append(norm_abundances_w)
+            results_reg.append(norm_abundances_reg)
 
-data = pd.read_csv('./prep_out/sample_counts_reg.csv')
-abundances_df = pd.DataFrame(columns=['filename', 'r', 'sample_time', 'sample_id', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
+# Concatenate all results and save to CSV
+pl.concat(results_w).write_csv("prep_out/estimated_abundances_w.csv")
+pl.concat(results_reg).write_csv("prep_out/estimated_abundances_reg.csv")
 
-for idx, filename in enumerate(filenames):
-    df1 = data[data['filename'] == filename]
-    for st in sample_times:
-        df2 = df1[df1['sample_time'] == st]
-        for r in rs:
-            df3 = df2[df2['r'] == r]  
-            plot_abundances_per_sample = compute_abundance_estimates(df3, 9, r)
-
-            for i, sample_abundances in enumerate(plot_abundances_per_sample):
-                abundances_df = pd.concat([abundances_df, pd.DataFrame({'filename': [filename], 'r': r, 'sample_time': [st], 'sample_id': i, '0': sample_abundances[0], '1': sample_abundances[1], '2': sample_abundances[2], '3': sample_abundances[3], '4': sample_abundances[4], '5': sample_abundances[5], '6': sample_abundances[6], '7': sample_abundances[7], '8': sample_abundances[8]})])
-
-abundances_df.to_csv('prep_out/estimated_abundances_reg.csv', index=False)
-
-##### Diversity
-###   Baseline
-###
-#####
 
 def shannon_diversity(counts):
-    total = np.sum(counts)
+    total = counts.sum()
     if total == 0:
-        return 0
+        return 0.0
     proportions = counts / total
-    proportions = proportions[proportions > 0]  # Filter out zero proportions to avoid log(0)
-    return -np.sum(proportions * np.log(proportions.astype('float64')))
+    return -np.sum(proportions[proportions > 0] * np.log(proportions[proportions > 0]))
+
 
 def simpson_diversity(counts):
-    total = np.sum(counts)
+    total = counts.sum()
     if total == 0:
-        return 0
+        return 0.0
     proportions = counts / total
-    return 1 - np.sum(proportions**2)
+    return 1.0 - np.sum(proportions**2)
 
-print('Diversity Prep')
-div_df = pd.DataFrame(columns=['filename', 'sample_time', 'shannon', 'simpson'])
 
-for idx, filename in enumerate(filenames):  
-    df = pd.read_csv(path + filename + ".csv")
+diversity_results = []
+
+for filename in tqdm(filenames, desc="Computing Baseline Diversity Indices"):
+    df = pl.read_parquet(path + filename + ".parquet")
+
     for st in sample_times:
-        data = df[df["tick"] == st]
-        data = data.reset_index(drop=True)
-        counts = data['type'].value_counts().reindex(range(len(df["type"].unique())), fill_value=0)
+        data = df.filter(pl.col("tick") == st)
 
-        div_df = pd.concat([div_df, pd.DataFrame({'filename': [filename], 'sample_time': [st], 'shannon': shannon_diversity(counts), 'simpson': simpson_diversity(counts)})])
-    
-    del df
-    del data
-    gc.collect()
+        # Compute type counts and reindex to ensure all organism types 0-8 exist
+        counts = (
+            data["type"]
+            .value_counts()
+            .with_columns(pl.col("type").cast(pl.Int64))
+            .sort("type")
+        )
 
-div_df.to_csv('prep_out/baseline_diversity_indices.csv', index=False)
+        full_range_df = pl.DataFrame({"type": range(9)})
+        counts_df = full_range_df.join(counts, on="type", how="left").with_columns(
+            pl.col("count").fill_null(0)
+        )
 
-#### Diversity
-##   Estimates W
-##
-####
-def shannon_diversity_est(row):
-    counts = row[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].values
-    total = np.sum(counts)
-    if total == 0:
-        return 0
-    proportions = counts / total
-    proportions = proportions[proportions > 0]  # Filter out zero proportions to avoid log(0)
-    return -np.sum(proportions * np.log(proportions.astype('float64')))
+        counts_array = counts_df["count"].to_numpy()
+        diversity_results.append(
+            (
+                filename,
+                st,
+                shannon_diversity(counts_array).round(5),
+                simpson_diversity(counts_array).round(5),
+            )
+        )
 
-def simpson_diversity_est(row):
-    counts = row[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].values
-    total = np.sum(counts)
-    if total == 0:
-        return 0
-    proportions = counts / total
-    return 1 - np.sum(proportions**2)
+# Convert results to Polars DataFrame and save
+pl.DataFrame(
+    diversity_results,
+    schema=["filename", "sample_time", "shannon", "simpson"],
+    orient="row",
+).write_csv("prep_out/baseline_diversity_indices.csv")
 
-#######################
-df = pd.read_csv('prep_out/sample_counts_w.csv')
+df_w = pl.read_csv("prep_out/sample_counts_w.csv")
+df_reg = pl.read_csv("prep_out/sample_counts_reg.csv")
 
-df['shannon'] = df.apply(shannon_diversity_est, axis=1)
-df['simpson'] = df.apply(simpson_diversity_est, axis=1)
-df.drop(['0', '1', '2', '3', '4', '5', '6', '7', '8'], axis=1, inplace=True)
+count_cols = [str(i) for i in range(9)]
+diversity_dfs_w = []
+diversity_dfs_reg = []
 
-df.to_csv('prep_out/estimated_diversity_indices_sample_w.csv', index=False)
+print("Computing Estimated Diversity Indices")
 
-#########################
-df = pd.read_csv('./prep_out/sample_counts_w.csv')
+for group_cols, output_file in [
+    (
+        ["filename", "r", "sample_time", "sample_id"],
+        "estimated_diversity_indices_sample",
+    ),  # No pooling
+    (["filename", "r", "sample_time"], "estimated_diversity_indices_plot"),  # Per plot
+    (["filename", "r"], "estimated_diversity_indices_temporal"),  # Per plot over time
+]:
+    grouped_df_w = df_w.group_by(group_cols).agg(
+        [pl.sum(col).alias(col) for col in count_cols]
+    )
+    grouped_df_reg = df_reg.group_by(group_cols).agg(
+        [pl.sum(col).alias(col) for col in count_cols]
+    )
 
-grouped_df = df.groupby(['filename', 'r', 'sample_time'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()
-grouped_df['shannon'] = grouped_df.apply(shannon_diversity_est, axis=1)
-grouped_df['simpson'] = grouped_df.apply(simpson_diversity_est, axis=1)
-grouped_df.drop(['0', '1', '2', '3', '4', '5', '6', '7', '8'], axis=1, inplace=True)
+    counts_array_w = grouped_df_w.select(count_cols).to_numpy()
+    counts_array_reg = grouped_df_reg.select(count_cols).to_numpy()
 
-grouped_df.to_csv('prep_out/estimated_diversity_indices_plot_w.csv', index=False)
+    shannon_vals_w = np.round(
+        np.apply_along_axis(shannon_diversity, 1, counts_array_w), 5
+    )
+    simpson_vals_w = np.round(
+        np.apply_along_axis(simpson_diversity, 1, counts_array_w), 5
+    )
+    shannon_vals_reg = np.round(
+        np.apply_along_axis(shannon_diversity, 1, counts_array_reg), 5
+    )
+    simpson_vals_reg = np.round(
+        np.apply_along_axis(simpson_diversity, 1, counts_array_reg), 5
+    )
 
-#########################
-df = pd.read_csv('./prep_out/sample_counts_w.csv')
+    diversity_dfs_w.append(
+        grouped_df_w.with_columns(
+            [pl.Series("shannon", shannon_vals_w), pl.Series("simpson", simpson_vals_w)]
+        )
+        .drop(count_cols)
+        .sort(group_cols)  # Drop organism count columns
+    )
+    diversity_dfs_reg.append(
+        grouped_df_reg.with_columns(
+            [
+                pl.Series("shannon", shannon_vals_reg),
+                pl.Series("simpson", simpson_vals_reg),
+            ]
+        )
+        .drop(count_cols)
+        .sort(group_cols)  # Drop organism count columns
+    )
 
-grouped_df = df.groupby(['filename', 'r'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()
-grouped_df['shannon'] = grouped_df.apply(shannon_diversity_est, axis=1)
-grouped_df['simpson'] = grouped_df.apply(simpson_diversity_est, axis=1)
-grouped_df.drop(['0', '1', '2', '3', '4', '5', '6', '7', '8'], axis=1, inplace=True)
+    diversity_dfs_w[-1].write_csv(f"prep_out/{output_file}_w.csv")
+    diversity_dfs_reg[-1].write_csv(f"prep_out/{output_file}_reg.csv")
 
-grouped_df.to_csv('prep_out/estimated_diversity_indices_temporal_w.csv', index=False)
-#### Diversity
-##   Estimates Sys Reg
-##
-####
 
-######################
-df = pd.read_csv('prep_out/sample_counts_reg.csv')
+def compute_d_index_pairwise(data, range_by_type, pseudo_count=1e-5):
+    type_count = np.zeros((x_max, y_max, num_types))  # (x, y, type)
+    D_matrix = np.zeros((num_types, num_types))  # 9x9 dissimilarity matrix
+    neighborhood_counts = np.zeros((num_types, num_types))  # Neighborhood count tracker
 
-df['shannon'] = df.apply(shannon_diversity_est, axis=1)
-df['simpson'] = df.apply(simpson_diversity_est, axis=1)
-df.drop(['0', '1', '2', '3', '4', '5', '6', '7', '8'], axis=1, inplace=True)
-
-df.to_csv('prep_out/estimated_diversity_indices_sample_reg.csv', index=False)
-
-#########################
-df = pd.read_csv('./prep_out/sample_counts_reg.csv')
-
-grouped_df = df.groupby(['filename', 'r', 'sample_time'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()
-grouped_df['shannon'] = grouped_df.apply(shannon_diversity_est, axis=1)
-grouped_df['simpson'] = grouped_df.apply(simpson_diversity_est, axis=1)
-grouped_df.drop(['0', '1', '2', '3', '4', '5', '6', '7', '8'], axis=1, inplace=True)
-
-grouped_df.to_csv('prep_out/estimated_diversity_indices_plot_reg.csv', index=False)
-
-#########################
-df = pd.read_csv('./prep_out/sample_counts_reg.csv')
-
-grouped_df = df.groupby(['filename', 'r'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()
-grouped_df['shannon'] = grouped_df.apply(shannon_diversity_est, axis=1)
-grouped_df['simpson'] = grouped_df.apply(simpson_diversity_est, axis=1)
-grouped_df.drop(['0', '1', '2', '3', '4', '5', '6', '7', '8'], axis=1, inplace=True)
-
-grouped_df.to_csv('prep_out/estimated_diversity_indices_temporal_reg.csv', index=False)
-
-#### D_index
-##   Estimates Baseline
-##
-####
-print('D_index Prep')
-def compute_d_index_pairwise(data, grid_dimensions, range_by_type, pseudo_count=1e-5):
-    X, Y = grid_dimensions
-    num_types = 9
-    type_count = np.zeros((X, Y, num_types))  # Counts for each type at each spatial unit
-    D_matrix = np.zeros((num_types, num_types))  # 9x9 matrix 
-    neighborhood_counts = np.zeros((num_types, num_types))  # Count of neighborhoods for each type pair
-
-    # Populate the 2D grid with agent counts
-    for _, agent in data.iterrows():
-        x, y, t = agent['x'], agent['y'], agent['type']
-        type_count[x][y][t] += 1
-
+    # Populate the 2D grid with agent counts (adjusted for multiple organisms in the same location)
+    x_vals, y_vals, type_vals = (
+        data["x"].to_numpy(),
+        data["y"].to_numpy(),
+        data["type"].to_numpy(),
+    )
+    for x, y, t in zip(x_vals, y_vals, type_vals):
+        type_count[x, y, t] += (
+            1  # Increment the count for each organism type at the (x, y) location
+        )
 
     # Calculate the total number of agents for each type in the entire grid
     total_count_by_type = np.sum(type_count, axis=(0, 1))
 
+    # Vectorized neighborhood count function
     def compute_neighborhood_counts(x, y, r):
-        """Compute counts of each type in the Von Neumann neighborhood of (x, y) with range r."""
+        """Vectorized Von Neumann neighborhood count computation."""
         neighborhood_count = np.zeros(num_types)
         for dx in range(-r, r + 1):
             for dy in range(-r + abs(dx), r - abs(dx) + 1):
-                    nx = (x + dx) % X
-                    ny = (y + dy) % Y
-                    neighborhood_count += type_count[nx][ny]
+                nx = (x + dx) % x_max
+                ny = (y + dy) % y_max
+                neighborhood_count += type_count[nx, ny]
         return neighborhood_count
 
-    # Calculate the Dissimilarity Index for each spatial unit
-    for x in range(X):
-        for y in range(Y):
+    # Compute D-index
+    for x in range(x_max):
+        for y in range(y_max):
             for t in range(num_types):
                 r = range_by_type[t]
                 neighborhood_count_at_unit = compute_neighborhood_counts(x, y, r)
-                
+
                 for t_prime in range(num_types):
                     if total_count_by_type[t] > 0 and total_count_by_type[t_prime] > 0:
-                        prop_t = (neighborhood_count_at_unit[t] + pseudo_count) / total_count_by_type[t]
-                        prop_t_prime = (neighborhood_count_at_unit[t_prime] + pseudo_count) / total_count_by_type[t_prime]
-                        
-                        # Calculate the absolute difference
+                        prop_t = (
+                            neighborhood_count_at_unit[t] + pseudo_count
+                        ) / total_count_by_type[t]
+                        prop_t_prime = (
+                            neighborhood_count_at_unit[t_prime] + pseudo_count
+                        ) / total_count_by_type[t_prime]
+
+                        # Compute absolute difference
                         D = abs(prop_t - prop_t_prime)
-                        
-                        # Accumulate the difference in the respective matrix
-                        D_matrix[t][t_prime] += D
-                        neighborhood_counts[t][t_prime] += 1
-                        if t != t_prime:
-                            # Ensure symmetric accumulation
-                            D_matrix[t_prime][t] += D
-                            neighborhood_counts[t_prime][t] += 1
-    
-    # Average the D-index values
-    for t in range(num_types):
-        for t_prime in range(num_types):
-            if neighborhood_counts[t][t_prime] > 0:
-                # Average the dissimilarity index
-                D_matrix[t][t_prime] /= neighborhood_counts[t][t_prime]
-            else:
-                D_matrix[t][t_prime] = 0  # Handle cases where no neighborhoods were tested
 
-    # Normalize by maximum possible dissimilarity
-    max_possible_dissimilarity = np.max(D_matrix)
-    if max_possible_dissimilarity > 0:
-        D_matrix /= max_possible_dissimilarity  # Normalize to [0, 1]
-    else:
-        D_matrix = np.zeros_like(D_matrix)  # Handle cases with no data
+                        # Accumulate values symmetrically
+                        D_matrix[t, t_prime] += D
+                        neighborhood_counts[t, t_prime] += 1
+
+    # Normalize D-index
+    mask = neighborhood_counts > 0
+    D_matrix[mask] /= neighborhood_counts[mask]  # Avoid division by zero
+
+    # Normalize to [0,1]
+    max_D = np.max(D_matrix)
+    if max_D > 0:
+        D_matrix /= max_D
 
     return D_matrix
 
-indices = pd.DataFrame(columns=['filename', 'sample_time', 'type_id', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
-for idx, filename in enumerate(filenames):  
-    df = pd.read_csv(path + filename + ".csv")
+
+d_index_results = []
+
+for filename in tqdm(filenames, desc="Computing Baseline D-Index"):
+    df = pl.read_parquet(path + filename + ".parquet")
+
     for st in sample_times:
-        data = df[df["tick"] == st]
-        data = data.reset_index(drop=True)
-        d_index = compute_d_index_pairwise(data, (x_max, y_max), [1,1,1,1,1,1,1,1,1])
+        data = df.filter(pl.col("tick") == st)
+
+        # Compute the D-index (using the optimized function)
+        d_index = compute_d_index_pairwise(data, [1] * 9)
+
+        # Store results efficiently in a list
         for type_id, row in enumerate(d_index):
-            indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'sample_time': [st], 'type_id': [type_id], '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
-    
-    del df
-    del data
-    gc.collect()
+            rounded_row = tuple(
+                round(val, 5) for val in row
+            )  # Round each value to 5 decimals
+            d_index_results.append((filename, st, type_id, *rounded_row))
 
-indices.to_csv('prep_out/baseline_d_index.csv', index=False)
+# Convert list to a Polars DataFrame in one step (much faster than looping `concat`)
+indices_df = pl.DataFrame(
+    d_index_results,
+    schema=["filename", "sample_time", "type_id"] + [str(i) for i in range(9)],
+    orient="row",
+)
 
-### D_index
-#   Estimates W
-#
-###
-def compute_d_index_pairwise_estimates_sample(counts, num_types, num_samples):
-    total_count_by_type = []
-    D_matrix = np.zeros((num_samples, num_types, num_types))
-    neighborhood_counts = np.zeros((num_samples, num_types, num_types)) 
-    
-    for idx in range(num_types):
-        total_count_by_type.append(counts[str(idx)].sum())
-        
-    for sample_id in range(len(counts['sample_id'].unique())):
-        sample_counts = counts[counts['sample_id'] == sample_id]       
-        for t in range(num_types):  
-            t_count = sample_counts[str(t)].values[0]
-            for t_prime in range(num_types):
-                if t_count > 0 and total_count_by_type[t] > 0 and total_count_by_type[t_prime] > 0:
-                    prop_t = t_count / total_count_by_type[t]
-                    prop_t_prime = sample_counts[str(t_prime)].values[0] / total_count_by_type[t_prime]
+# Save to CSV
+indices_df.write_csv("prep_out/baseline_d_index_test.csv")
 
-                    # Calculate the absolute difference
-                    D = abs(prop_t - prop_t_prime)
 
-                    # Accumulate the difference in the respective matrix
-                    D_matrix[sample_id][t][t_prime] += D
-                    neighborhood_counts[sample_id][t][t_prime] += 1
-                    if t != t_prime:
-                        # Ensure symmetric accumulation
-                        D_matrix[sample_id][t_prime][t] += D
-                        neighborhood_counts[sample_id][t_prime][t] += 1
-    
-    # Average the D-index values
-    for s in range(num_samples):
+def compute_d_index(counts, num_samples, mode):
+    total_count_by_type = [counts[str(idx)].sum() for idx in range(num_types)]
+
+    if mode == "sample":
+        D_matrix = np.zeros((num_samples, num_types, num_types))
+        neighborhood_counts = np.zeros((num_samples, num_types, num_types))
+    else:  # "plot"
+        D_matrix = np.zeros((num_types, num_types))
+        neighborhood_counts = np.zeros((num_types, num_types))
+
+    for sample_id in range(num_samples):
+        sample_counts = counts.filter(pl.col("sample_id") == sample_id)
         for t in range(num_types):
+            t_count = sample_counts[str(t)].sum()
             for t_prime in range(num_types):
-                if neighborhood_counts[s][t][t_prime] > 0:
-                    # Average the dissimilarity index
-                    D_matrix[s][t][t_prime] /= neighborhood_counts[s][t][t_prime]
-                else:
-                    D_matrix[s][t][t_prime] = 0  # Handle cases where no neighborhoods were tested
-
-    # Normalize by maximum possible dissimilarity
-    max_possible_dissimilarity = np.max(D_matrix)
-    if max_possible_dissimilarity > 0:
-        D_matrix /= max_possible_dissimilarity  # Normalize to [0, 1]
-    else:
-        D_matrix = np.zeros_like(D_matrix)  # Handle cases with no data
-
-    return D_matrix
-
-def compute_d_index_pairwise_estimates_plot_temporal(counts, num_types):
-    total_count_by_type = []
-    D_matrix = np.zeros((num_types, num_types))
-    neighborhood_counts = np.zeros((num_types, num_types)) 
-    
-    for idx in range(num_types):
-        total_count_by_type.append(counts[str(idx)].sum())
-        
-    for sample_id in range(len(counts['sample_id'].unique())):
-        sample_counts = counts[counts['sample_id'] == sample_id]       
-        for t in range(num_types):  
-            t_count = sample_counts[str(t)].values[0]
-            for t_prime in range(num_types):
-                if t_count > 0 and total_count_by_type[t] > 0 and total_count_by_type[t_prime] > 0:
+                if all(
+                    [
+                        t_count > 0,
+                        total_count_by_type[t] > 0,
+                        total_count_by_type[t_prime] > 0,
+                    ]
+                ):
                     prop_t = t_count / total_count_by_type[t]
-                    prop_t_prime = sample_counts[str(t_prime)].values[0] / total_count_by_type[t_prime]
-
-                    # Calculate the absolute difference
+                    prop_t_prime = (
+                        sample_counts[str(t_prime)].sum() / total_count_by_type[t_prime]
+                    )
                     D = abs(prop_t - prop_t_prime)
 
-                    # Accumulate the difference in the respective matrix
-                    D_matrix[t][t_prime] += D
-                    neighborhood_counts[t][t_prime] += 1
-                    if t != t_prime:
-                        # Ensure symmetric accumulation
-                        D_matrix[t_prime][t] += D
-                        neighborhood_counts[t_prime][t] += 1
-    
-    # Average the D-index values
-    for t in range(num_types):
-        for t_prime in range(num_types):
-            if neighborhood_counts[t][t_prime] > 0:
-                # Average the dissimilarity index
-                D_matrix[t][t_prime] /= neighborhood_counts[t][t_prime]
-            else:
-                D_matrix[t][t_prime] = 0  # Handle cases where no neighborhoods were tested
+                    if mode == "sample":
+                        D_matrix[sample_id, t, t_prime] += D
+                        neighborhood_counts[sample_id, t, t_prime] += 1
+                        if t != t_prime:
+                            D_matrix[sample_id, t_prime, t] += D
+                            neighborhood_counts[sample_id, t_prime, t] += 1
+                    else:
+                        D_matrix[t, t_prime] += D
+                        neighborhood_counts[t, t_prime] += 1
+                        if t != t_prime:
+                            D_matrix[t_prime, t] += D
+                            neighborhood_counts[t_prime, t] += 1
 
-    # Normalize by maximum possible dissimilarity
-    max_possible_dissimilarity = np.max(D_matrix)
-    if max_possible_dissimilarity > 0:
-        D_matrix /= max_possible_dissimilarity  # Normalize to [0, 1]
+    valid_counts = neighborhood_counts > 0
+    D_matrix[valid_counts] /= neighborhood_counts[valid_counts]
+    D_matrix[~valid_counts] = 0
+
+    max_dissimilarity = np.max(D_matrix)
+    if max_dissimilarity > 0:
+        D_matrix /= max_dissimilarity
     else:
-        D_matrix = np.zeros_like(D_matrix)  # Handle cases with no data
+        D_matrix.fill(0)
 
     return D_matrix
 
-data = pd.read_csv('./prep_out/sample_counts_w.csv')
-indices = pd.DataFrame(columns=['filename', 'sample_id', 'sample_time', 'type_id', 'r', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
 
-for idx, filename in enumerate(filenames):
-    df1 = data[data['filename'] == filename]
-    for st in sample_times:
+def collect_indices_from_d_index(data, filenames, sample_times, rs, mode, sample_sim):
+    if mode == "temporal":
+        data = data.group_by(["filename", "r", "sample_id"]).agg(
+            [pl.col(str(i)).sum().alias(str(i)) for i in range(9)]
+        )
+    indices = []
+    for filename in filenames:
         for r in rs:
-            df2 = df1[df1['r'] == r]
-            df3 = df2[df2['sample_time'] == st]
-            d_index = compute_d_index_pairwise_estimates_sample(df3, 9, len(df2['sample_id'].unique()))
+            df_filtered = data.filter(pl.col("filename") == filename).filter(
+                pl.col("r") == r
+            )
+            if mode != "temporal":
+                for st in sample_times:
+                    df_st_filtered = df_filtered.filter(pl.col("sample_time") == st)
+                    d_index_result = compute_d_index(
+                        df_st_filtered,
+                        len(df_st_filtered["sample_id"].unique()),
+                        mode=mode,
+                    )
+                    for type_id, row in enumerate(d_index_result):
+                        entry = {
+                            "filename": filename,
+                            "r": r,
+                            "type_id": type_id,
+                            **{str(i): row[i].round(5) for i in range(9)},
+                        }
+                        if mode == "sample":
+                            entry.update({"sample_time": st, "sample_id": type_id})
+                        elif mode == "plot":
+                            entry.update({"sample_time": st})
+                        indices.append(entry)
+            else:
+                d_index_result = compute_d_index(
+                    df_filtered, len(df_filtered["sample_id"].unique()), mode="plot"
+                )
+                for type_id, row in enumerate(d_index_result):
+                    indices.append(
+                        {
+                            "filename": filename,
+                            "r": r,
+                            "type_id": type_id,
+                            **{str(i): row[i].round(5) for i in range(9)},
+                        }
+                    )
 
-            for sample_id, rows in enumerate(d_index):
-                for type_id, row in enumerate(rows):
-                    indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'sample_id': [sample_id], 'sample_time': [st], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
-indices.to_csv('prep_out/estimated_d_index_sample_w.csv', index=False)
-
-data = pd.read_csv('./prep_out/sample_counts_w.csv')
-indices = pd.DataFrame(columns=['filename', 'sample_time', 'type_id', 'r', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
-
-for idx, filename in enumerate(filenames):
-    df1 = data[data['filename'] == filename]
-    for st in sample_times:
-        for r in rs:
-            df2 = df1[df1['r'] == r]
-            df3 = df2[df2['sample_time'] == st]       
-            d_index = compute_d_index_pairwise_estimates_plot_temporal(df3, 9)
-
-            for type_id, row in enumerate(d_index):
-                indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'sample_time': [st], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
-indices.to_csv('prep_out/estimated_d_index_plot_w.csv', index=False)
+    df_result = pl.DataFrame(indices)
+    df_result = pl.DataFrame(
+        [
+            {
+                k: str(v) if isinstance(v, (list, np.ndarray)) else v
+                for k, v in entry.items()
+            }
+            for entry in indices
+        ]
+    )
+    df_result.write_csv(f"prep_out/estimated_d_index_{mode}_{sample_sim}.csv")
 
 
+print("Computing Estimated D-Index")
 
-data = pd.read_csv('./prep_out/sample_counts_w.csv')
-indices = pd.DataFrame(columns=['filename', 'type_id', 'r', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
+# Load data
+data_w = pl.read_csv("./prep_out/sample_counts_w.csv")
+data_reg = pl.read_csv("./prep_out/sample_counts_reg.csv")
 
-for idx, filename in enumerate(filenames):
-    df1 = data[data['filename'] == filename]
-    for r in rs:
-        df2 = df1[df1['r'] == r]
-        df3 = df2.groupby(['filename', 'r', 'sample_id'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()   
-        d_index = compute_d_index_pairwise_estimates_plot_temporal(df3, 9)
-        for type_id, row in enumerate(d_index):
-            indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
-indices.to_csv('prep_out/estimated_d_index_temporal_w.csv', index=False)
+# Compute D-index with different pooling strategies
+collect_indices_from_d_index(
+    data_w, filenames, sample_times, rs, mode="sample", sample_sim="w"
+)
+collect_indices_from_d_index(
+    data_w, filenames, sample_times, rs, mode="plot", sample_sim="w"
+)
+collect_indices_from_d_index(
+    data_w, filenames, sample_times, rs, mode="temporal", sample_sim="w"
+)
 
-
-### D_index
-#   Estimates Sys Reg
-#
-###
-data = pd.read_csv('./prep_out/sample_counts_reg.csv')
-indices = pd.DataFrame(columns=['filename', 'sample_id', 'sample_time', 'type_id', 'r', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
-
-for idx, filename in enumerate(filenames):
-    df1 = data[data['filename'] == filename]
-    for st in sample_times:
-        for r in rs:
-            df2 = df1[df1['r'] == r]
-            df3 = df2[df2['sample_time'] == st]
-            d_index = compute_d_index_pairwise_estimates_sample(df3, 9, len(df2['sample_id'].unique()))
-
-            for sample_id, rows in enumerate(d_index):
-                for type_id, row in enumerate(rows):
-                    indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'sample_id': [sample_id], 'sample_time': [st], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
-indices.to_csv('prep_out/estimated_d_index_sample_reg.csv', index=False)
-
-data = pd.read_csv('./prep_out/sample_counts_reg.csv')
-indices = pd.DataFrame(columns=['filename', 'sample_time', 'type_id', 'r', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
-
-for idx, filename in enumerate(filenames):
-    df1 = data[data['filename'] == filename]
-    for st in sample_times:
-        for r in rs:
-            df2 = df1[df1['r'] == r]
-            df3 = df2[df2['sample_time'] == st]       
-            d_index = compute_d_index_pairwise_estimates_plot_temporal(df3, 9)
-
-            for type_id, row in enumerate(d_index):
-                indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'sample_time': [st], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
-indices.to_csv('prep_out/estimated_d_index_plot_reg.csv', index=False)
-
-data = pd.read_csv('./prep_out/sample_counts_reg.csv')
-indices = pd.DataFrame(columns=['filename', 'type_id', 'r', '0', '1', '2', '3', '4', '5', '6', '7', '8'])
-
-for idx, filename in enumerate(filenames):
-    df1 = data[data['filename'] == filename]
-    for r in rs:
-        df2 = df1[df1['r'] == r]
-        df3 = df2.groupby(['filename', 'r', 'sample_id'])[["0", "1", "2", "3", "4", "5", "6", "7", "8"]].sum().reset_index()   
-        d_index = compute_d_index_pairwise_estimates_plot_temporal(df3, 9)
-
-        for type_id, row in enumerate(d_index):
-            indices = pd.concat([indices, pd.DataFrame({'filename': [filename], 'type_id': [type_id], 'r': r, '0': [row[0]], '1': [row[1]], '2': [row[2]], '3': [row[3]], '4': [row[4]], '5': [row[5]], '6': [row[6]], '7': [row[7]], '8': [row[8]]})])
-indices.to_csv('prep_out/estimated_d_index_temporal_reg.csv', index=False)
+collect_indices_from_d_index(
+    data_reg, filenames, sample_times, rs, mode="sample", sample_sim="reg"
+)
+collect_indices_from_d_index(
+    data_reg, filenames, sample_times, rs, mode="plot", sample_sim="reg"
+)
+collect_indices_from_d_index(
+    data_reg, filenames, sample_times, rs, mode="temporal", sample_sim="reg"
+)
