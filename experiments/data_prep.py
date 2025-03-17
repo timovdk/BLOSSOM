@@ -504,16 +504,24 @@ def collect_indices_from_d_index(data, filenames, sample_times, rs, mode, sample
                         mode=mode,
                     )
                     for type_id, row in enumerate(d_index_result):
-                        entry = {
-                            "filename": filename,
-                            "r": r,
-                            "type_id": type_id,
-                            **{str(i): row[i].round(5) for i in range(9)},
-                        }
                         if mode == "sample":
-                            entry.update({"sample_time": st, "sample_id": type_id})
+                            entry = {
+                                "filename": filename,
+                                "r": r,
+                                "sample_time": st,
+                                "sample_id": type_id,
+                                "type_id": type_id,
+                                **{str(i): row[i].round(5) for i in range(9)},
+                            }
+
                         elif mode == "plot":
-                            entry.update({"sample_time": st})
+                            entry = {
+                                "filename": filename,
+                                "r": r,
+                                "sample_time": st,
+                                "type_id": type_id,
+                                **{str(i): row[i].round(5) for i in range(9)},
+                            }
                         indices.append(entry)
             else:
                 d_index_result = compute_d_index(
