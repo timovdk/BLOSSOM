@@ -503,26 +503,34 @@ def collect_indices_from_d_index(data, filenames, sample_times, rs, mode, sample
                         len(df_st_filtered["sample_id"].unique()),
                         mode=mode,
                     )
-                    for type_id, row in enumerate(d_index_result):
-                        if mode == "sample":
-                            entry = {
-                                "filename": filename,
-                                "r": r,
-                                "sample_time": st,
-                                "sample_id": type_id,
-                                "type_id": type_id,
-                                **{str(i): row[i].round(5) for i in range(9)},
-                            }
+                    if mode == "sample":
+                        for sample_index, sample_id in enumerate(
+                            df_st_filtered["sample_id"].unique(maintain_order=True)
+                        ):
+                            for type_id in range(9):
+                                row = d_index_result[sample_index, type_id]
+                                indices.append(
+                                    {
+                                        "filename": filename,
+                                        "r": r,
+                                        "sample_time": st,
+                                        "sample_id": sample_id,
+                                        "type_id": type_id,
+                                        **{str(i): row[i].round(5) for i in range(9)},
+                                    }
+                                )
 
-                        elif mode == "plot":
-                            entry = {
-                                "filename": filename,
-                                "r": r,
-                                "sample_time": st,
-                                "type_id": type_id,
-                                **{str(i): row[i].round(5) for i in range(9)},
-                            }
-                        indices.append(entry)
+                    elif mode == "plot":
+                        for type_id, row in enumerate(d_index_result):
+                            indices.append(
+                                {
+                                    "filename": filename,
+                                    "r": r,
+                                    "sample_time": st,
+                                    "type_id": type_id,
+                                    **{str(i): row[i].round(5) for i in range(9)},
+                                }
+                            )
             else:
                 d_index_result = compute_d_index(
                     df_filtered, len(df_filtered["sample_id"].unique()), mode="plot"
