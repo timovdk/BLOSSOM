@@ -131,7 +131,7 @@ pl.DataFrame(sample_counts_reg_list).write_csv("prep_out/sample_counts_reg.csv")
 abundances_list = []
 
 # Loop over filenames
-for idx, filename in tqdm(enumerate(filenames), desc="Computing Baseline Abundances"):
+for idx, filename in tqdm(enumerate(filenames), desc="Computing ground_truth Abundances"):
     # Read the parquet file using polars
     df = pl.read_parquet(path + filename + ".parquet")
 
@@ -171,7 +171,7 @@ for idx, filename in tqdm(enumerate(filenames), desc="Computing Baseline Abundan
 
 # Convert the list of dictionaries to a polars DataFrame and then to CSV
 abundances_df = pl.DataFrame(abundances_list)
-abundances_df.write_csv("prep_out/baseline_abundances.csv")
+abundances_df.write_csv("prep_out/ground_truth_abundances.csv")
 
 
 # Compute normalized abundance estimates
@@ -238,7 +238,7 @@ def simpson_diversity(counts):
 
 diversity_results = []
 
-for filename in tqdm(filenames, desc="Computing Baseline Diversity Indices"):
+for filename in tqdm(filenames, desc="Computing ground_truth Diversity Indices"):
     df = pl.read_parquet(path + filename + ".parquet")
 
     for st in sample_times:
@@ -272,7 +272,7 @@ pl.DataFrame(
     diversity_results,
     schema=["filename", "sample_time", "shannon", "simpson"],
     orient="row",
-).write_csv("prep_out/baseline_diversity_indices.csv")
+).write_csv("prep_out/ground_truth_diversity_indices.csv")
 
 df_w = pl.read_csv("prep_out/sample_counts_w.csv")
 df_reg = pl.read_csv("prep_out/sample_counts_reg.csv")
@@ -403,7 +403,7 @@ def compute_d_index_pairwise(data, range_by_type, pseudo_count=1e-5):
 
 d_index_results = []
 
-for filename in tqdm(filenames, desc="Computing Baseline D-Index"):
+for filename in tqdm(filenames, desc="Computing ground_truth D-Index"):
     df = pl.read_parquet(path + filename + ".parquet")
 
     for st in sample_times:
@@ -427,7 +427,7 @@ indices_df = pl.DataFrame(
 )
 
 # Save to CSV
-indices_df.write_csv("prep_out/baseline_d_index_test.csv")
+indices_df.write_csv("prep_out/ground_truth_d_index_test.csv")
 
 
 def compute_d_index(counts, num_samples, mode):

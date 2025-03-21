@@ -103,7 +103,7 @@ def process_metrics_data_sample(
 
 
 def process_raw_data_sample(
-    baseline_dict,
+    ground_truth_dict,
     estimate_reg_dict,
     estimate_w_dict,
     rs=[1, 2, 3, 4, 5],
@@ -117,12 +117,12 @@ def process_raw_data_sample(
     metrics_reg_type_list = []
     metrics_w_type_list = []
 
-    # Read raw data, baseline, and estimate data for the given file and sample time
-    for file in baseline_dict.keys():
+    # Read raw data, ground_truth, and estimate data for the given file and sample time
+    for file in ground_truth_dict.keys():
         raw_data = pl.read_parquet(f"./raw_data/{file}.parquet")
         for sample_time in sample_times:
             raw_data_st = raw_data.filter(pl.col("tick") == sample_time)
-            bl = baseline_dict[file]
+            bl = ground_truth_dict[file]
             es_r = estimate_reg_dict[file]
             es_w = estimate_w_dict[file]
 
@@ -168,12 +168,12 @@ def process_raw_data_sample(
 
 
 # Read data using Polars LazyFrames
-baseline = pl.read_csv("prep_out/baseline_abundances.csv")
+ground_truth = pl.read_csv("prep_out/ground_truth_abundances.csv")
 estimate_reg = pl.read_csv("prep_out/estimated_abundances_reg.csv")
 estimate_w = pl.read_csv("prep_out/estimated_abundances_w.csv")
 
 # Convert groupby results into dictionaries for fast lookup
-baseline_dict = {df["filename"][0]: df for df in baseline.partition_by("filename")}
+ground_truth_dict = {df["filename"][0]: df for df in ground_truth.partition_by("filename")}
 estimate_reg_dict = {
     df["filename"][0]: df for df in estimate_reg.partition_by("filename")
 }
@@ -185,7 +185,7 @@ metrics_reg_type_list = []
 metrics_w_type_list = []
 
 metrics_reg, metrics_w, metrics_reg_type, metrics_w_type = process_raw_data_sample(
-    baseline_dict,
+    ground_truth_dict,
     estimate_reg_dict,
     estimate_w_dict,
 )
@@ -273,7 +273,7 @@ def process_metrics_data_plot(
 
 
 def process_raw_data_plot(
-    baseline_dict,
+    ground_truth_dict,
     estimate_reg_dict,
     estimate_w_dict,
     rs=[1, 2, 3, 4, 5],
@@ -287,12 +287,12 @@ def process_raw_data_plot(
     metrics_reg_type_list = []
     metrics_w_type_list = []
 
-    # Read raw data, baseline, and estimate data for the given file and sample time
-    for file in baseline_dict.keys():
+    # Read raw data, ground_truth, and estimate data for the given file and sample time
+    for file in ground_truth_dict.keys():
         raw_data = pl.read_parquet(f"./raw_data/{file}.parquet")
         for sample_time in sample_times:
             raw_data_st = raw_data.filter(pl.col("tick") == sample_time)
-            bl = baseline_dict[file]
+            bl = ground_truth_dict[file]
             es_r = estimate_reg_dict[file]
             es_w = estimate_w_dict[file]
 
@@ -338,12 +338,12 @@ def process_raw_data_plot(
 
 
 # Read data using Polars LazyFrames
-baseline = pl.read_csv("prep_out/baseline_abundances.csv")
+ground_truth = pl.read_csv("prep_out/ground_truth_abundances.csv")
 estimate_reg = pl.read_csv("prep_out/estimated_abundances_reg.csv")
 estimate_w = pl.read_csv("prep_out/estimated_abundances_w.csv")
 
 # Convert groupby results into dictionaries for fast lookup
-baseline_dict = {df["filename"][0]: df for df in baseline.partition_by("filename")}
+ground_truth_dict = {df["filename"][0]: df for df in ground_truth.partition_by("filename")}
 estimate_reg_dict = {
     df["filename"][0]: df for df in estimate_reg.partition_by("filename")
 }
@@ -357,7 +357,7 @@ metrics_w_type_list = []
 # Iterate through sample times and process metrics data
 
 metrics_reg, metrics_w, metrics_reg_type, metrics_w_type = process_raw_data_plot(
-    baseline_dict,
+    ground_truth_dict,
     estimate_reg_dict,
     estimate_w_dict,
 )
@@ -441,7 +441,7 @@ def process_metrics_data_temporal(
 
 
 def process_raw_data_temporal(
-    baseline_dict,
+    ground_truth_dict,
     estimate_reg_dict,
     estimate_w_dict,
     rs=[1, 2, 3, 4, 5],
@@ -455,11 +455,11 @@ def process_raw_data_temporal(
     metrics_reg_type_list = []
     metrics_w_type_list = []
 
-    # Read raw data, baseline, and estimate data for the given file and sample time
-    for file in baseline_dict.keys():
+    # Read raw data, ground_truth, and estimate data for the given file and sample time
+    for file in ground_truth_dict.keys():
         raw_data = pl.read_parquet(f"./raw_data/{file}.parquet")
         raw_data_st = raw_data.filter(pl.col("tick").is_in(sample_times))
-        bl = baseline_dict[file]
+        bl = ground_truth_dict[file]
         es_r = estimate_reg_dict[file]
         es_w = estimate_w_dict[file]
         # Precompute unique types and their counts
@@ -502,12 +502,12 @@ def process_raw_data_temporal(
 
 
 # Read data using Polars LazyFrames
-baseline = pl.read_csv("prep_out/baseline_abundances.csv")
+ground_truth = pl.read_csv("prep_out/ground_truth_abundances.csv")
 estimate_reg = pl.read_csv("prep_out/estimated_abundances_reg.csv")
 estimate_w = pl.read_csv("prep_out/estimated_abundances_w.csv")
 
 # Convert groupby results into dictionaries for fast lookup
-baseline_dict = {df["filename"][0]: df for df in baseline.partition_by("filename")}
+ground_truth_dict = {df["filename"][0]: df for df in ground_truth.partition_by("filename")}
 estimate_reg_dict = {
     df["filename"][0]: df for df in estimate_reg.partition_by("filename")
 }
@@ -521,7 +521,7 @@ metrics_w_type_list = []
 # Iterate through sample times and process metrics data
 
 metrics_reg, metrics_w, metrics_reg_type, metrics_w_type = process_raw_data_temporal(
-    baseline_dict,
+    ground_truth_dict,
     estimate_reg_dict,
     estimate_w_dict,
 )
@@ -542,7 +542,7 @@ metrics_w_df.write_csv("./analysis_out/abundances_temporal_w.csv")
 metrics_reg_type_df.write_csv("./analysis_out/abundances_temporal_reg_type.csv")
 metrics_w_type_df.write_csv("./analysis_out/abundances_temporal_w_type.csv")
 
-baseline = pl.read_csv("prep_out/baseline_diversity_indices.csv")
+ground_truth = pl.read_csv("prep_out/ground_truth_diversity_indices.csv")
 estimate_reg = pl.read_csv("prep_out/estimated_diversity_indices_sample_reg.csv")
 estimate_w = pl.read_csv("prep_out/estimated_diversity_indices_sample_w.csv")
 
@@ -552,8 +552,8 @@ sample_times = [0, 100, 200, 300, 400, 500, 600]
 metrics_list_reg = []
 metrics_list_w = []
 
-for file in baseline["filename"].unique(maintain_order=True):
-    bl_f = baseline.filter(pl.col("filename") == file)
+for file in ground_truth["filename"].unique(maintain_order=True):
+    bl_f = ground_truth.filter(pl.col("filename") == file)
     es_r = estimate_reg.filter(pl.col("filename") == file)
     es_w = estimate_w.filter(pl.col("filename") == file)
 
@@ -608,7 +608,7 @@ pl.DataFrame(metrics_list_reg).write_csv(
 )
 pl.DataFrame(metrics_list_w).write_csv("./analysis_out/diversity_indices_sample_w.csv")
 
-baseline = pl.read_csv("prep_out/baseline_diversity_indices.csv")
+ground_truth = pl.read_csv("prep_out/ground_truth_diversity_indices.csv")
 estimate_reg = pl.read_csv("prep_out/estimated_diversity_indices_plot_reg.csv")
 estimate_w = pl.read_csv("prep_out/estimated_diversity_indices_plot_w.csv")
 
@@ -618,8 +618,8 @@ sample_times = [0, 100, 200, 300, 400, 500, 600]
 metrics_list_reg = []
 metrics_list_w = []
 
-for file in baseline["filename"].unique(maintain_order=True):
-    bl_f = baseline.filter(pl.col("filename") == file)
+for file in ground_truth["filename"].unique(maintain_order=True):
+    bl_f = ground_truth.filter(pl.col("filename") == file)
     es_r = estimate_reg.filter(pl.col("filename") == file)
     es_w = estimate_w.filter(pl.col("filename") == file)
 
@@ -666,7 +666,7 @@ pl.DataFrame(metrics_list_reg).write_csv(
 )
 pl.DataFrame(metrics_list_w).write_csv("./analysis_out/diversity_indices_plot_w.csv")
 
-baseline = pl.read_csv("prep_out/baseline_diversity_indices.csv")
+ground_truth = pl.read_csv("prep_out/ground_truth_diversity_indices.csv")
 estimate_reg = pl.read_csv("prep_out/estimated_diversity_indices_temporal_reg.csv")
 estimate_w = pl.read_csv("prep_out/estimated_diversity_indices_temporal_w.csv")
 
@@ -675,8 +675,8 @@ rs = [1, 2, 3, 4, 5]
 metrics_list_reg = []
 metrics_list_w = []
 
-for file in baseline["filename"].unique(maintain_order=True):
-    bl_f = baseline.filter(pl.col("filename") == file)
+for file in ground_truth["filename"].unique(maintain_order=True):
+    bl_f = ground_truth.filter(pl.col("filename") == file)
     bl_sh = bl_f["shannon"].mean()
     bl_si = bl_f["simpson"].mean()
 
@@ -719,7 +719,7 @@ pl.DataFrame(metrics_list_w).write_csv(
     "./analysis_out/diversity_indices_temporal_w.csv"
 )
 
-baseline = pl.read_csv("prep_out/baseline_d_index.csv")
+ground_truth = pl.read_csv("prep_out/ground_truth_d_index.csv")
 estimate_reg = pl.read_csv("prep_out/estimated_d_index_sample_reg.csv")
 estimate_w = pl.read_csv("prep_out/estimated_d_index_sample_w.csv")
 
@@ -730,12 +730,12 @@ metrics_reg = []
 metrics_w = []
 
 # Process each unique filename
-for file in baseline["filename"].unique(maintain_order=True):
-    bl_f = baseline.filter(pl.col("filename") == file)
+for file in ground_truth["filename"].unique(maintain_order=True):
+    bl_f = ground_truth.filter(pl.col("filename") == file)
     es_r = estimate_reg.filter(pl.col("filename") == file)
     es_w = estimate_w.filter(pl.col("filename") == file)
 
-    for t in baseline["type_id"].unique(maintain_order=True):
+    for t in ground_truth["type_id"].unique(maintain_order=True):
         bl_t = bl_f.filter(pl.col("type_id") == t)
         es_r_t = es_r.filter(pl.col("type_id") == t)
         es_w_t = es_w.filter(pl.col("type_id") == t)
@@ -801,7 +801,7 @@ for file in baseline["filename"].unique(maintain_order=True):
 pl.DataFrame(metrics_reg).write_csv("./analysis_out/d_index_sample_reg.csv")
 pl.DataFrame(metrics_w).write_csv("./analysis_out/d_index_sample_w.csv")
 
-baseline = pl.read_csv("prep_out/baseline_d_index.csv")
+ground_truth = pl.read_csv("prep_out/ground_truth_d_index.csv")
 estimate_reg = pl.read_csv("prep_out/estimated_d_index_plot_reg.csv")
 estimate_w = pl.read_csv("prep_out/estimated_d_index_plot_w.csv")
 
@@ -813,8 +813,8 @@ metrics_reg_list = []
 metrics_w_list = []
 
 # Iterate over unique filenames
-for file in baseline["filename"].unique(maintain_order=True):
-    bl_f = baseline.filter(pl.col("filename") == file)
+for file in ground_truth["filename"].unique(maintain_order=True):
+    bl_f = ground_truth.filter(pl.col("filename") == file)
     es_r = estimate_reg.filter(pl.col("filename") == file)
     es_w = estimate_w.filter(pl.col("filename") == file)
 
@@ -823,7 +823,7 @@ for file in baseline["filename"].unique(maintain_order=True):
         es_st_w = es_w.filter(pl.col("sample_time") == st)
         bl_st = bl_f.filter(pl.col("sample_time") == st)
 
-        for t in baseline["type_id"].unique(maintain_order=True):
+        for t in ground_truth["type_id"].unique(maintain_order=True):
             bl = (
                 bl_st.filter(pl.col("type_id") == t)
                 .select([str(i) for i in range(9)])
@@ -879,7 +879,7 @@ metrics_w = pl.DataFrame(metrics_w_list)
 metrics_reg.write_csv("./analysis_out/d_index_plot_reg.csv")
 metrics_w.write_csv("./analysis_out/d_index_plot_w.csv")
 
-baseline = pl.read_csv("prep_out/baseline_d_index.csv")
+ground_truth = pl.read_csv("prep_out/ground_truth_d_index.csv")
 estimate_reg = pl.read_csv("prep_out/estimated_d_index_temporal_reg.csv")
 estimate_w = pl.read_csv("prep_out/estimated_d_index_temporal_w.csv")
 
@@ -890,13 +890,13 @@ metrics_reg_list = []
 metrics_w_list = []
 
 # Iterate over unique filenames
-for file in baseline["filename"].unique(maintain_order=True):
-    bl_f = baseline.filter(pl.col("filename") == file)
+for file in ground_truth["filename"].unique(maintain_order=True):
+    bl_f = ground_truth.filter(pl.col("filename") == file)
     es_r = estimate_reg.filter(pl.col("filename") == file)
     es_w = estimate_w.filter(pl.col("filename") == file)
 
-    for t in baseline["type_id"].unique(maintain_order=True):
-        # Compute mean of baseline for type_id == 0
+    for t in ground_truth["type_id"].unique(maintain_order=True):
+        # Compute mean of ground_truth for type_id == 0
         bl = (
             bl_f.filter(pl.col("type_id") == 0)
             .select([str(i) for i in range(9)])
