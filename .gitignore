@@ -11,3 +11,7 @@ deprecated
 !figures/*
 
 *.parquet
+
+bin/
+build/
+.vscode/
