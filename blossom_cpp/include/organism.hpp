@@ -1,31 +1,41 @@
 #pragma once
+
 #include "neighbourhoods.hpp"
 #include <map>
 #include <set>
 #include <string>
 
-struct OrganismData {
+struct OrganismData
+{
     std::map<std::string, double> params;
     std::set<int> preys;
     std::set<int> predators;
 };
 
-class OrganismGroup {
-private:
+class OrganismGroup
+{
+  private:
     int id, type, age;
     double biomass;
     dpt location;
 
-public:
+  public:
     OrganismGroup(int id, int type, dpt location, int age, double biomass);
+
+    // Getters and Setters
     int getId() const;
     int getType() const;
     dpt getLocation() const;
-    double getBiomass() const;
+    void setLocation(const dpt new_location);
     int getAge() const;
-    void incrementAge();
+    double getBiomass() const;
+
+    // State modification
     void divideBiomass();
-    void move(const dpt& new_location);
-    OrganismGroup save(int new_id) const;
-    void increaseBiomass(double amount);
+    void increaseBiomass(const double amount);
+    void decreaseBiomass(const double amount);
+    void incrementAge();
+
+    // Reproduction
+    OrganismGroup reproduce(const int new_id, const dpt new_loc) const;
 };

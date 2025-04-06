@@ -1,11 +1,11 @@
-output_file=./outputs/agent_log.csv
-default_seed=654
+output_file=./outputs/random.csv
+default_seed=123
 initial_distribution_type=0
-initial_distribution_seed=4333
+initial_distribution_seed=6536
 nutrient_type=1
-nutrient_seed=23424
-nutrient_max=0.0075
-max_steps=600
+nutrient_seed=7675
+nutrient_mean=0.0075
+max_steps=200
 grid_width=400
 grid_height=400
 

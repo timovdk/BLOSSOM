@@ -1,49 +1,73 @@
 #pragma once
+
 #include "organism.hpp"
-#include <unordered_map>
-#include <vector>
+#include <map>
 #include <random>
 #include <set>
-#include <map>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
-class BLOSSOM {
-private:
+class BLOSSOM
+{
+  private:
+    // Core data structures
     std::unordered_map<int, OrganismGroup> agents;
     std::vector<std::vector<std::vector<int>>> agentGrid;
-    std::vector<std::vector<int>> somGrid;
+    std::vector<std::vector<double>> somGrid;
     std::vector<OrganismData> organismData;
 
+    // Simulation parameters
     int currentStep = 0;
     unsigned long long organismId = 0;
     std::string outputFile;
+
+    // Config parameters
     unsigned int defaultSeed, initialDistributionSeed, nutrientSeed;
     int initialDistributionType, nutrientType;
-    double nutrientMax;
+    double nutrientMean;
     int maxSteps, gridWidth, gridHeight;
 
+    // RNGs
     std::mt19937 defaultRNG, initDistRNG, nutrientRNG;
 
-    void loadConfig(const std::string& filename);
+    // Setup
+    void loadConfig(const std::string &filename);
     void init();
-    void initialize_som();
-    void populate(int init);
-    std::vector<std::pair<int, int>> create_random_clusters(int num_individuals, std::mt19937& rng);
-    void simulate_agent(OrganismGroup& agent, std::set<int>& to_kill, std::vector<OrganismGroup>& to_add);
-    void feed_from_som(OrganismGroup& agent, dpt location, const OrganismData& data);
-    void feed_from_other_agents(OrganismGroup& agent, dpt location, const OrganismData& data, std::set<int>& to_kill);
-    void reproduce(OrganismGroup& agent, std::vector<OrganismGroup>& to_add);
-    void update_probabilities(std::vector<double>& probs, const std::vector<dpt>& options, const std::set<int>& to_kill, const OrganismData& data);
-    void handle_killed_agents(const std::set<int>& to_kill);
-    void handle_new_agents(const std::vector<OrganismGroup>& to_add);
-    void add_agent(const OrganismGroup &agent);
-    void remove_agent(int agent_id);
-    void log();
+    void initializeSOM();
+    void populate();
+    const std::vector<std::pair<int, int>> createRandomClusters(const int num_individuals);
+
+    // Simulation loop
     void step();
-    std::vector<OrganismGroup> get_agents_at_location(dpt location);
+    void simulateAgentStep(OrganismGroup &agent, std::set<int> &to_kill, std::vector<OrganismGroup> &to_add);
 
+    // Movement
+    void calculateMovementProbabilities(const OrganismGroup &agent, std::vector<double> &probs,
+                                        const std::vector<dpt> &options, const std::set<int> &ogs_to_kill,
+                                        const std::map<std::string, double> &params, const std::set<int> &preys,
+                                        const std::set<int> &predators);
+    void moveAgent(OrganismGroup &agent, const dpt &new_location);
 
-public:
+    // Feeding
+    void feedOnSOM(OrganismGroup &agent, const dpt &location, const std::map<std::string, double> &params);
+    void feedOnAgents(OrganismGroup &agent, const dpt &location, const std::map<std::string, double> &params,
+                      const std::set<int> &preys, std::set<int> &ogs_to_kill);
+
+    // Reproduction
+    void reproduce(OrganismGroup &agent, std::vector<OrganismGroup> &to_add);
+
+    // Agent management
+    void handleNewAgents(const std::vector<OrganismGroup> &to_add);
+    void handleKilledAgents(const std::set<int> &to_kill);
+    void addAgent(const OrganismGroup &agent);
+    void removeAgent(const int agent_id);
+
+    // Utility functions
+    const std::vector<OrganismGroup> getAgentsAtLocation(const dpt &location);
+    void log(const bool first_time);
+
+  public:
     BLOSSOM();
     void run();
 };

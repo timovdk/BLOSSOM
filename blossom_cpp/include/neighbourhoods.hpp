@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 
 struct dpt
@@ -7,6 +8,6 @@ struct dpt
     dpt(int x = 0, int y = 0);
 };
 
-int wrapAround(int value, int gridSize);
-std::vector<dpt> von_neumann_r1(int x, int y, int gridWidth, int gridHeight);
-std::vector<dpt> von_neumann_neighborhood_2d(int x, int y, int r, int gridWidth, int gridHeight);
+int wrapAround(const int value, const int gridSize);
+const std::vector<dpt> vonNeumannR1(const int x, const int y, const int gridWidth, const int gridHeight);
+const std::vector<dpt> vonNeumannRn(const int x, const int y, const int r, const int gridWidth, const int gridHeight);

@@ -1,6 +1,7 @@
 #include "blossom.hpp"
 
-int main() {
+int main()
+{
     BLOSSOM model;
     model.run();
     return 0;

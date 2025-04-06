@@ -1,24 +1,56 @@
 #include "organism.hpp"
 
 OrganismGroup::OrganismGroup(int id, int type, dpt location, int age, double biomass)
-    : id(id), type(type), age(age), biomass(biomass), location(location) {}
+    : id(id), type(type), age(age), biomass(biomass), location(location)
+{
+}
 
-// Getters
-int OrganismGroup::getId() const { return id; }
-int OrganismGroup::getType() const { return type; }
-dpt OrganismGroup::getLocation() const { return location; }
-double OrganismGroup::getBiomass() const { return biomass; }
-int OrganismGroup::getAge() const { return age; }
+// Getters and Setters
+int OrganismGroup::getId() const
+{
+    return id;
+}
+int OrganismGroup::getType() const
+{
+    return type;
+}
+dpt OrganismGroup::getLocation() const
+{
+    return location;
+}
+void OrganismGroup::setLocation(const dpt new_location)
+{
+    location = new_location;
+}
+int OrganismGroup::getAge() const
+{
+    return age;
+}
+double OrganismGroup::getBiomass() const
+{
+    return biomass;
+}
 
-void OrganismGroup::incrementAge() { ++age; }
-void OrganismGroup::divideBiomass() { biomass /= 2.0; }
-void OrganismGroup::increaseBiomass(double amount)
+// State modification
+void OrganismGroup::divideBiomass()
+{
+    biomass /= 2.0;
+}
+void OrganismGroup::increaseBiomass(const double amount)
 {
     biomass += amount;
 }
-// TODO: Whenever move is called, check if the new location is reflected in the agents and ids list
-void OrganismGroup::move(const dpt &new_location) { location = new_location; }
-OrganismGroup OrganismGroup::save(int new_id) const
+void OrganismGroup::decreaseBiomass(const double amount)
 {
-    return OrganismGroup(new_id, type, location, 0, biomass);
+    biomass -= amount;
+}
+void OrganismGroup::incrementAge()
+{
+    ++age;
+}
+
+// Reproduction
+OrganismGroup OrganismGroup::reproduce(const int new_id, const dpt new_loc) const
+{
+    return OrganismGroup(new_id, type, new_loc, 0, biomass);
 }

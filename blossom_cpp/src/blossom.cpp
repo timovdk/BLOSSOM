@@ -1,17 +1,15 @@
 #include "blossom.hpp"
-#include "utils.hpp"
 #include "neighbourhoods.hpp"
 #include "organism.hpp"
+#include "utils.hpp"
 #include <fstream>
-#include <sstream>
 #include <iostream>
-#include <algorithm>
+#include <sstream>
 
 BLOSSOM::BLOSSOM()
 {
     loadConfig("./config/config.props");
 
-    // Initialize RNGs
     defaultRNG = std::mt19937(defaultSeed);
     initDistRNG = std::mt19937(initialDistributionSeed);
     nutrientRNG = std::mt19937(nutrientSeed);
@@ -19,7 +17,17 @@ BLOSSOM::BLOSSOM()
     init();
 }
 
-// Load configuration from the props file
+void BLOSSOM::run()
+{
+    while (currentStep < maxSteps)
+    {
+        currentStep++;
+        step();
+        log(false);
+    }
+}
+
+// Setup
 void BLOSSOM::loadConfig(const std::string &filename)
 {
     std::ifstream file(filename);
@@ -36,14 +44,13 @@ void BLOSSOM::loadConfig(const std::string &filename)
         }
     }
 
-    // Load general configuration
     outputFile = config["output_file"];
     defaultSeed = std::stoi(config["default_seed"]);
     initialDistributionType = std::stoi(config["initial_distribution_type"]);
     initialDistributionSeed = std::stoi(config["initial_distribution_seed"]);
     nutrientType = std::stoi(config["nutrient_type"]);
     nutrientSeed = std::stoi(config["nutrient_seed"]);
-    nutrientMax = std::stod(config["nutrient_max"]);
+    nutrientMean = std::stod(config["nutrient_mean"]);
     maxSteps = std::stoi(config["max_steps"]);
     gridWidth = std::stoi(config["grid_width"]);
     gridHeight = std::stoi(config["grid_height"]);
@@ -78,53 +85,48 @@ void BLOSSOM::loadConfig(const std::string &filename)
 
 void BLOSSOM::init()
 {
-    initialize_som();
-    populate(initialDistributionType);
+    initializeSOM();
+    populate();
+    log(true);
 }
 
-void BLOSSOM::initialize_som()
+void BLOSSOM::initializeSOM()
 {
-    std::uniform_int_distribution<> dist(0, 2 * nutrientMax);
-
-    somGrid.resize(gridWidth, std::vector<int>(gridHeight, 0));
+    std::uniform_real_distribution<> dist(0, 2 * nutrientMean);
+    somGrid.resize(gridWidth, std::vector<double>(gridHeight, 0));
 
     for (int x = 0; x < gridWidth; ++x)
     {
         for (int y = 0; y < gridHeight; ++y)
         {
-            somGrid[x][y] = (nutrientType == 0) ? dist(nutrientRNG) : nutrientMax;
+            somGrid[x][y] = (nutrientType == 0) ? dist(nutrientRNG) : nutrientMean;
         }
     }
 }
 
-// Populate function (initialize agents)
-void BLOSSOM::populate(int init)
+void BLOSSOM::populate()
 {
     agentGrid.resize(gridWidth, std::vector<std::vector<int>>(gridHeight));
 
-    std::uniform_real_distribution<> distX(0, gridWidth - 1);
-    std::uniform_real_distribution<> distY(0, gridHeight - 1);
-
-    if (init == 1)
-    { // Clustered initialization
+    if (initialDistributionType == 1)
+    {
         for (int type_i = 0; static_cast<size_t>(type_i) < organismData.size(); ++type_i)
         {
             double biomass = organismData[type_i].params["biomass_reproduction"] / 2.0;
             int numAgents = static_cast<int>(organismData[type_i].params["count"]);
-            // Create clustered locations
-            auto locations = create_random_clusters(numAgents, initDistRNG);
-            // Add agents at those locations
+            auto locations = createRandomClusters(numAgents);
             for (const auto &loc : locations)
             {
-                agents.emplace(std::pair<int, OrganismGroup>(organismId, OrganismGroup(organismId, type_i, dpt(loc.first, loc.second), 0, biomass)));
-                agentGrid[loc.first][loc.second].push_back(organismId);
+                addAgent(OrganismGroup(organismId, type_i, dpt(loc.first, loc.second), 0, biomass));
                 organismId++;
-                // Ensure unique IDs
             }
         }
     }
     else
-    { // Random initialization
+    {
+        std::uniform_int_distribution<> distX(0, gridWidth - 1);
+        std::uniform_int_distribution<> distY(0, gridHeight - 1);
+
         for (int type_i = 0; static_cast<size_t>(type_i) < organismData.size(); ++type_i)
         {
             double biomass = organismData[type_i].params["biomass_reproduction"] / 2.0;
@@ -132,42 +134,38 @@ void BLOSSOM::populate(int init)
 
             for (int i = 0; i < numAgents; ++i)
             {
-                int x = static_cast<int>(distX(initDistRNG));
-                int y = static_cast<int>(distY(initDistRNG));
+                int x = distX(initDistRNG);
+                int y = distY(initDistRNG);
 
-                // Add random agents
-                agents.emplace(std::pair<int, OrganismGroup>(organismId, OrganismGroup(organismId, type_i, dpt(x, y), 0, biomass)));
-                agentGrid[x][y].push_back(organismId);
+                addAgent(OrganismGroup(organismId, type_i, dpt(x, y), 0, biomass));
                 organismId++;
-                // Ensure unique IDs
             }
         }
     }
 }
 
-// Cluster creation function
-std::vector<std::pair<int, int>> BLOSSOM::create_random_clusters(int num_individuals, std::mt19937 &rng)
+const std::vector<std::pair<int, int>> BLOSSOM::createRandomClusters(const int num_individuals)
 {
     std::vector<std::pair<int, int>> clusters;
     std::set<std::pair<int, int>> occupied_locations;
+    std::uniform_int_distribution<> max_cluster_size(std::max(1, num_individuals / 1000), num_individuals / 50);
 
     int locations_remaining = num_individuals;
 
     while (locations_remaining > 0)
     {
-        int cluster_size = std::min(locations_remaining, 100); // Cluster size range
+        int cluster_size = std::min(locations_remaining, max_cluster_size(initDistRNG));
 
-        // Randomly determine the center of the next cluster
         std::uniform_real_distribution<> distCenterX(0, gridWidth);
         std::uniform_real_distribution<> distCenterY(0, gridHeight);
-        double centerX = distCenterX(rng);
-        double centerY = distCenterY(rng);
+        double centerX = distCenterX(initDistRNG);
+        double centerY = distCenterY(initDistRNG);
 
         for (int i = 0; i < cluster_size; ++i)
         {
             std::normal_distribution<> clusterDist(0.0, 1.0);
-            int x = static_cast<int>(centerX + clusterDist(rng));
-            int y = static_cast<int>(centerY + clusterDist(rng));
+            int x = static_cast<int>(centerX + clusterDist(initDistRNG));
+            int y = static_cast<int>(centerY + clusterDist(initDistRNG));
 
             x = (x + gridWidth) % gridWidth;
             y = (y + gridHeight) % gridHeight;
@@ -186,28 +184,7 @@ std::vector<std::pair<int, int>> BLOSSOM::create_random_clusters(int num_individ
     return clusters;
 }
 
-std::vector<OrganismGroup> BLOSSOM::get_agents_at_location(dpt location)
-{
-    std::vector<OrganismGroup> result;
-    // Iterate over the agent IDs stored in the agentGrid at the specified location
-    for (int agent_id : agentGrid[location.x][location.y])
-    {
-        // Check if the agent_id exists in the agents map using find
-        auto it = agents.find(agent_id);
-        if (it != agents.end())
-        {
-            result.push_back(it->second); // Push the reference to the agent
-        }
-        // Optionally handle the case when the agent_id doesn't exist in the map
-        else
-        {
-            // For example, log or skip if needed
-            // std::cerr << "Agent ID " << agent_id << " not found in the agents map.\n";
-        }
-    }
-    return result;
-}
-
+// Simulation loop
 void BLOSSOM::step()
 {
     std::cout << "Step: " << currentStep << " Organisms: " << agents.size() << std::endl;
@@ -220,7 +197,6 @@ void BLOSSOM::step()
 
     std::shuffle(agentIds.begin(), agentIds.end(), defaultRNG);
 
-    // Lists to hold agents to add and remove
     std::vector<OrganismGroup> ogs_to_add;
     std::set<int> ogs_to_kill;
 
@@ -229,77 +205,66 @@ void BLOSSOM::step()
         auto it = agents.find(agentId);
         if (it != agents.end())
         {
-            auto &agent = it->second; // Use reference to the found OrganismGroup
+            auto &agent = it->second;
             if (ogs_to_kill.find(agent.getId()) == ogs_to_kill.end())
             {
-                simulate_agent(agent, ogs_to_kill, ogs_to_add);
+                simulateAgentStep(agent, ogs_to_kill, ogs_to_add);
             }
-        }
-        else
-        {
-            // Handle case where agentId is not found in the map (optional)
-            std::cerr << "Agent ID " << agentId << " not found in the map.\n";
         }
     }
 
-    // Handle adding new agents and removing killed agents
-    handle_new_agents(ogs_to_add);
+    handleNewAgents(ogs_to_add);
     ogs_to_add.clear();
-    handle_killed_agents(ogs_to_kill);
+    handleKilledAgents(ogs_to_kill);
     ogs_to_kill.clear();
 }
 
-void BLOSSOM::simulate_agent(OrganismGroup &agent, std::set<int> &ogs_to_kill, std::vector<OrganismGroup> &ogs_to_add)
+void BLOSSOM::simulateAgentStep(OrganismGroup &agent, std::set<int> &ogs_to_kill,
+                                std::vector<OrganismGroup> &ogs_to_add)
 {
-    // Fetch agent parameters from a config or predefined array
-    const auto &organism_data = organismData[agent.getType()];
-    dpt location = agent.getLocation();
+    const auto &params = organismData[agent.getType()].params;
+    const auto &predators = organismData[agent.getType()].predators;
+    const auto &preys = organismData[agent.getType()].preys;
+    const auto &location = agent.getLocation();
 
-    // Dispersal logic (like the von Neumann dispersal in Python)
+    // Dispersal logic
     if (agent.getType() == 0)
     {
-        // Special dispersal for bacteria
-        auto options = von_neumann_r1(location.x, location.y, gridWidth, gridHeight);
-        // Move agent using random selection
-        agent.move(options[defaultRNG() % options.size()]);
+        const auto options = vonNeumannR1(location.x, location.y, gridWidth, gridHeight);
+        moveAgent(agent, options[defaultRNG() % options.size()]);
     }
     else if (agent.getType() != 1)
     {
-        // Regular dispersal
-        auto options = von_neumann_neighborhood_2d(location.x, location.y, organism_data.params.at("range_dispersal"), gridWidth, gridHeight);
+        auto options = vonNeumannRn(location.x, location.y, params.at("range_dispersal"), gridWidth, gridHeight);
         std::vector<double> probs(options.size(), 0.01);
 
-        // Modify probabilities based on prey and predator interactions
-        update_probabilities(probs, options, ogs_to_kill, organism_data);
+        calculateMovementProbabilities(agent, probs, options, ogs_to_kill, params, preys, predators);
 
-        // Normalize probabilities and move agent
         normalize(probs);
-        agent.move(options[weighted_choice(probs, defaultRNG)]);
+        moveAgent(agent, options[weighted_choice(probs, defaultRNG)]);
     }
 
-    // Feeding logic (if biomass is lower than biomass_max)
-    if (agent.getBiomass() < organism_data.params.at("biomass_max"))
+    // Feeding logic
+    if (agent.getBiomass() < params.at("biomass_max"))
     {
-        if (organism_data.params.at("som_feeder") == 1)
+        if (params.at("som_feeder") == 1)
         {
-            // SOM feeding logic
-            feed_from_som(agent, location, organism_data);
+            feedOnSOM(agent, location, params);
         }
         else
         {
-            // Run agent-agent feeding logic
-            feed_from_other_agents(agent, location, organism_data, ogs_to_kill);
+            feedOnAgents(agent, location, params, preys, ogs_to_kill);
         }
     }
 
     // Reproduction logic
-    if (agent.getAge() >= organism_data.params.at("age_reproduction") && agent.getBiomass() >= organism_data.params.at("biomass_reproduction"))
+    if (agent.getAge() >= params.at("age_reproduction") && agent.getBiomass() >= params.at("biomass_reproduction"))
     {
         reproduce(agent, ogs_to_add);
     }
 
     // Age logic
-    if (agent.getAge() >= organism_data.params.at("age_max"))
+    if (agent.getAge() >= params.at("age_max"))
     {
         ogs_to_kill.insert(agent.getId());
     }
@@ -307,171 +272,198 @@ void BLOSSOM::simulate_agent(OrganismGroup &agent, std::set<int> &ogs_to_kill, s
     agent.incrementAge();
 }
 
-// This function updates the probabilities based on prey and predator interactions
-void BLOSSOM::update_probabilities(std::vector<double> &probs, const std::vector<dpt> &options, const std::set<int> &ogs_to_kill,
-                          const OrganismData &organism_data)
+// Movement
+void BLOSSOM::calculateMovementProbabilities(const OrganismGroup &agent, std::vector<double> &probs,
+                                             const std::vector<dpt> &options, const std::set<int> &ogs_to_kill,
+                                             const std::map<std::string, double> &params, const std::set<int> &preys,
+                                             const std::set<int> &predators)
 {
-    double biomass_max = organism_data.params.at("biomass_max");
-    std::set<int> preys = organism_data.preys;
-    std::set<int> predators = organism_data.predators;
+    const double biomass_max = params.at("biomass_max");
 
-    // Iterate through each dispersal option
     for (size_t i = 0; i < options.size(); ++i)
     {
-        // Check if the location is already occupied by an agent to be killed
-        for (const auto &neighbor_agent : get_agents_at_location(options[i]))
+        for (const auto &neighbor_agent : getAgentsAtLocation(options[i]))
         {
             if (ogs_to_kill.find(neighbor_agent.getId()) != ogs_to_kill.end())
             {
                 continue;
             }
-            // If predator is found, decrease the probability significantly
             if (predators.find(neighbor_agent.getType()) != predators.end())
             {
                 probs[i] = 0.00001;
                 break;
             }
-            // If prey is found, increase the probability
-            if (preys.find(neighbor_agent.getType()) != preys.end())
+            if (params.at("som_feeder") == 0 && preys.find(neighbor_agent.getType()) != preys.end() &&
+                agent.getBiomass() < biomass_max)
             {
-                probs[i] += 1.0; // Increase probability if prey found
+                probs[i] += 1.0;
+            }
+            if (params.at("som_feeder") == 1 && agent.getBiomass() < biomass_max)
+            {
+                probs[i] = somGrid[options[i].x][options[i].y];
             }
         }
-
-        // If som feeder (based on biomass), consider value layer for food availability
-        if (organism_data.params.at("som_feeder") == 1)
-        {
-            double food_available = somGrid[options[i].x][options[i].y]; // Assume this function
-            double uptake = biomass_max * food_available / (organism_data.params.at("k") + food_available);
-            probs[i] = std::min(1.0, probs[i] + uptake); // Update with food uptake
-        }
     }
 }
 
-void BLOSSOM::feed_from_som(OrganismGroup &agent, dpt location, const OrganismData &organism_data)
+void BLOSSOM::moveAgent(OrganismGroup &agent, const dpt &new_location)
 {
-    // Get food value from SOM grid
-    double food_value = somGrid[location.x][location.y]; // Assume this function exists
+    dpt old_location = agent.getLocation();
+
+    auto &old_grid_agents = agentGrid[old_location.x][old_location.y];
+    old_grid_agents.erase(std::remove(old_grid_agents.begin(), old_grid_agents.end(), agent.getId()),
+                          old_grid_agents.end());
+
+    agent.setLocation(new_location);
+
+    agentGrid[new_location.x][new_location.y].push_back(agent.getId());
+}
+
+// Feeding
+void BLOSSOM::feedOnSOM(OrganismGroup &agent, const dpt &location, const std::map<std::string, double> &params)
+{
+    double food_value = somGrid[location.x][location.y];
     if (food_value > 0.0)
     {
-        double biomass_increase = organism_data.params.at("biomass_max") * food_value / (organism_data.params.at("k") + food_value);
+        double biomass_increase = params.at("biomass_max") * food_value / (params.at("k") + food_value);
+        biomass_increase = std::min(biomass_increase, food_value);
+
         agent.increaseBiomass(biomass_increase);
-        somGrid[location.x][location.y] -= food_value; // Decrease SOM value
+        somGrid[location.x][location.y] -= biomass_increase;
+
         if (somGrid[location.x][location.y] < 0.0)
         {
-            somGrid[location.x][location.y] = 0.0; // Ensure non-negative SOM value
+            somGrid[location.x][location.y] = 0.0;
         }
     }
 }
 
-void BLOSSOM::feed_from_other_agents(OrganismGroup &agent, dpt location, const OrganismData &organism_data, std::set<int> &ogs_to_kill)
+void BLOSSOM::feedOnAgents(OrganismGroup &agent, const dpt &location, const std::map<std::string, double> &params,
+                           const std::set<int> &preys, std::set<int> &ogs_to_kill)
 {
-    // Get agents at current location
-    auto food_opts = get_agents_at_location(location);
-    std::vector<double> food_probs;
+    auto agents_at_location = getAgentsAtLocation(location);
 
-    for (auto &food_agent : food_opts)
+    std::vector<double> food_probs;
+    std::vector<OrganismGroup> food_opts;
+
+    for (auto &agent_at_location : agents_at_location)
     {
-        if (food_agent.getId() != agent.getId() &&
-            ogs_to_kill.find(food_agent.getId()) == ogs_to_kill.end() &&
-            organism_data.preys.find(food_agent.getType()) != organism_data.preys.end())
-        { // Check if food agent is prey
-            food_probs.push_back(food_agent.getBiomass());
+        if (agent.getId() != agent_at_location.getId() &&
+            ogs_to_kill.find(agent_at_location.getId()) == ogs_to_kill.end() &&
+            preys.find(agent_at_location.getType()) != preys.end())
+        {
+            food_opts.push_back(agent_at_location);
+            food_probs.push_back(agent_at_location.getBiomass());
         }
     }
 
     if (!food_probs.empty())
     {
-        // Normalize probabilities and choose prey
         normalize(food_probs);
         auto prey = food_opts[weighted_choice(food_probs, defaultRNG)];
 
-        // Feed on prey
-        agent.increaseBiomass(prey.getBiomass());
+        double biomass_increase = params.at("biomass_max") * prey.getBiomass() / (params.at("k") + prey.getBiomass());
+        biomass_increase = std::min(biomass_increase, prey.getBiomass());
+
+        agent.increaseBiomass(biomass_increase);
+        prey.decreaseBiomass(biomass_increase);
+
         ogs_to_kill.insert(prey.getId());
     }
 }
 
+// Reproduction
 void BLOSSOM::reproduce(OrganismGroup &agent, std::vector<OrganismGroup> &ogs_to_add)
 {
     agent.divideBiomass();
-    ogs_to_add.push_back(agent.save(organismId)); // Save the new agent
+    auto new_loc = agent.getType() == 1 ? vonNeumannR1(agent.getLocation().x, agent.getLocation().y, gridWidth,
+                                                       gridHeight)[defaultRNG() % 5]
+                                        : agent.getLocation();
+
+    ogs_to_add.push_back(agent.reproduce(organismId, new_loc));
     organismId++;
 }
 
-void BLOSSOM::handle_new_agents(const std::vector<OrganismGroup> &ogs_to_add)
+// Agent management
+void BLOSSOM::handleNewAgents(const std::vector<OrganismGroup> &ogs_to_add)
 {
     for (const auto &new_agent : ogs_to_add)
     {
-        add_agent(new_agent);
+        addAgent(new_agent);
     }
 }
 
-void BLOSSOM::handle_killed_agents(const std::set<int> &ogs_to_kill)
+void BLOSSOM::handleKilledAgents(const std::set<int> &ogs_to_kill)
 {
     for (const auto &agent_id : ogs_to_kill)
     {
-        remove_agent(agent_id);
+        removeAgent(agent_id);
     }
 }
 
-void BLOSSOM::add_agent(const OrganismGroup &agent)
+void BLOSSOM::addAgent(const OrganismGroup &agent)
 {
     agents.emplace(std::pair<int, OrganismGroup>(agent.getId(), agent));
     agentGrid[agent.getLocation().x][agent.getLocation().y].push_back(agent.getId());
 }
 
-void BLOSSOM::remove_agent(int agent_id)
+void BLOSSOM::removeAgent(const int agent_id)
 {
     auto it = agents.find(agent_id);
     if (it != agents.end())
     {
-        auto &agent = it->second; // Use reference to the found OrganismGroup
+        auto &agent = it->second;
         auto &location_agents = agentGrid[agent.getLocation().x][agent.getLocation().y];
-        location_agents.erase(std::remove(location_agents.begin(), location_agents.end(), agent_id), location_agents.end());
+        location_agents.erase(std::remove(location_agents.begin(), location_agents.end(), agent_id),
+                              location_agents.end());
+
+        somGrid[agent.getLocation().x][agent.getLocation().y] += agent.getBiomass();
         agents.erase(agent_id);
-    }
-    else
-    {
-        // Handle case where agentId is not found in the map (optional)
-        std::cerr << "Agent ID " << agent_id << " not found in the map.\n";
     }
 }
 
-void BLOSSOM::log()
+// Utility functions
+const std::vector<OrganismGroup> BLOSSOM::getAgentsAtLocation(const dpt &location)
 {
-    std::ofstream outFile(outputFile, std::ios::app); // Open in append mode
+    std::vector<OrganismGroup> result;
+    for (int agent_id : agentGrid[location.x][location.y])
+    {
+        auto it = agents.find(agent_id);
+        if (it != agents.end())
+        {
+            result.push_back(it->second);
+        }
+    }
+    return result;
+}
+
+void BLOSSOM::log(const bool first_time)
+{
+    if (first_time)
+    {
+        std::ofstream outFile(outputFile);
+        if (!outFile.is_open())
+        {
+            std::cerr << "Failed to open log file.\n";
+            return;
+        }
+        outFile << "tick,id,type,x,y,age,biomass\n";
+        outFile.close();
+    }
+
+    std::ofstream outFile(outputFile, std::ios::app);
 
     if (!outFile.is_open())
     {
         std::cerr << "Failed to open log file.\n";
         return;
     }
-    if (currentStep == 0)
-    {
-        outFile << "tick,id,type,x,y,age,biomass\n"; // Header
-    }
 
     for (const auto &p : agents)
     {
         const auto &agent = p.second;
-        outFile << currentStep << ","
-                << agent.getId() << ","
-                << agent.getType() << ","
-                << agent.getLocation().x << ","
-                << agent.getLocation().y << ","
-                << agent.getAge() << ","
-                << agent.getBiomass() << "\n";
+        outFile << currentStep << "," << agent.getId() << "," << agent.getType() << "," << agent.getLocation().x << ","
+                << agent.getLocation().y << "," << agent.getAge() << "," << agent.getBiomass() << "\n";
     }
     outFile.close();
-}
-
-void BLOSSOM::run()
-{
-    while (currentStep < maxSteps)
-    {
-        step();
-        log();
-        currentStep++;
-    }
 }
