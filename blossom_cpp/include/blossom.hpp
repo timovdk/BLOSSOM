@@ -65,7 +65,7 @@ class BLOSSOM
 
     // Utility functions
     const std::vector<OrganismGroup> getAgentsAtLocation(const dpt &location);
-    void log(const bool first_time);
+    void log(const bool init);
 
   public:
     BLOSSOM();

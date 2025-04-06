@@ -43,6 +43,10 @@ void OrganismGroup::increaseBiomass(const double amount)
 void OrganismGroup::decreaseBiomass(const double amount)
 {
     biomass -= amount;
+    if (biomass < 0.0)
+    {
+        biomass = 0.0;
+    }
 }
 void OrganismGroup::incrementAge()
 {

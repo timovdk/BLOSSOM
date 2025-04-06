@@ -28,7 +28,7 @@ void normalize(std::vector<double> &probs)
     }
 }
 
-int weighted_choice(const std::vector<double> &probs, std::mt19937 &rng)
+int weightedChoice(const std::vector<double> &probs, std::mt19937 &rng)
 {
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     double random_value = dist(rng);
