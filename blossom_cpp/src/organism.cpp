@@ -32,10 +32,6 @@ double OrganismGroup::getBiomass() const
 }
 
 // State modification
-void OrganismGroup::divideBiomass()
-{
-    biomass /= 2.0;
-}
 void OrganismGroup::increaseBiomass(const double amount)
 {
     biomass += amount;
@@ -54,7 +50,9 @@ void OrganismGroup::incrementAge()
 }
 
 // Reproduction
-OrganismGroup OrganismGroup::reproduce(const int new_id, const dpt new_loc) const
+OrganismGroup OrganismGroup::reproduce(const int new_id, const dpt new_loc)
 {
-    return OrganismGroup(new_id, type, new_loc, 0, biomass);
+    double old_biomass = biomass;
+    biomass *= 0.5;
+    return OrganismGroup(new_id, type, new_loc, 0, (old_biomass - biomass));
 }

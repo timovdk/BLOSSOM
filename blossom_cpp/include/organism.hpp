@@ -31,11 +31,10 @@ class OrganismGroup
     double getBiomass() const;
 
     // State modification
-    void divideBiomass();
     void increaseBiomass(const double amount);
     void decreaseBiomass(const double amount);
     void incrementAge();
 
     // Reproduction
-    OrganismGroup reproduce(const int new_id, const dpt new_loc) const;
+    OrganismGroup reproduce(const int new_id, const dpt new_loc);
 };

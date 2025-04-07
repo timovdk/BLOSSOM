@@ -1,5 +1,6 @@
 #pragma once
 
+#include "logger.hpp"
 #include "organism.hpp"
 #include <map>
 #include <random>
@@ -20,7 +21,7 @@ class BLOSSOM
     // Simulation parameters
     int currentStep = 0;
     unsigned long long organismId = 0;
-    std::string outputFile;
+    std::string outputDir, outputFileName;
 
     // Config parameters
     unsigned int defaultSeed, initialDistributionSeed, nutrientSeed;
@@ -30,6 +31,9 @@ class BLOSSOM
 
     // RNGs
     std::mt19937 defaultRNG, initDistRNG, nutrientRNG;
+
+    // Logger
+    std::unique_ptr<Logger> logger;
 
     // Setup
     void loadConfig(const std::string &filename);
@@ -65,9 +69,8 @@ class BLOSSOM
 
     // Utility functions
     const std::vector<OrganismGroup> getAgentsAtLocation(const dpt &location);
-    void log(const bool init);
 
   public:
-    BLOSSOM();
+    BLOSSOM(const int index);
     void run();
 };

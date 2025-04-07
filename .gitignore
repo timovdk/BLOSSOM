@@ -15,3 +15,7 @@ deprecated
 bin/
 build/
 .vscode/
+outputs/
+parquet_files/
+vids/
+configs/

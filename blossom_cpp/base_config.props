@@ -1,11 +1,15 @@
-output_file=./outputs/random.csv
-default_seed=123
+output_dir=./outputs/
+output_file_name=random
+deviation=0.1
+default_seed=4677
+# 0 == random, 1 == clustered
 initial_distribution_type=0
-initial_distribution_seed=6536
-nutrient_type=1
-nutrient_seed=7675
+initial_distribution_seed=7959
+# 0 == random, 1 == uniform
+nutrient_type=0
+nutrient_seed=3464
 nutrient_mean=0.0075
-max_steps=200
+max_steps=50
 grid_width=400
 grid_height=400
 
@@ -16,8 +20,8 @@ organism_0_range_dispersal=1
 organism_0_age_reproduction=0
 organism_0_age_max=1
 organism_0_biomass_max=0.000975
-organism_0_biomass_reproduction=0.0005
-organism_0_k=0.026
+organism_0_biomass_reproduction=0.00052
+organism_0_k=0.0295
 organism_0_som_feeder=1
 organism_0_preys=
 organism_0_predators=3,5
@@ -25,11 +29,11 @@ organism_0_predators=3,5
 # Fungi, 1
 organism_1_count=15000
 organism_1_range_dispersal=0
-organism_1_age_reproduction=1
+organism_1_age_reproduction=2
 organism_1_age_max=9
 organism_1_biomass_max=0.001112
-organism_1_biomass_reproduction=0.001112
-organism_1_k=0.047
+organism_1_biomass_reproduction=0.000523
+organism_1_k=0.05
 organism_1_som_feeder=1
 organism_1_preys=
 organism_1_predators=4,6,8
@@ -37,10 +41,10 @@ organism_1_predators=4,6,8
 # Root-feeding nematodes, 2
 organism_2_count=5500
 organism_2_range_dispersal=3
-organism_2_age_reproduction=8
-organism_2_age_max=10
+organism_2_age_reproduction=11
+organism_2_age_max=12
 organism_2_biomass_max=0.001129
-organism_2_biomass_reproduction=0.0006
+organism_2_biomass_reproduction=0.00061
 organism_2_k=0.15
 organism_2_som_feeder=1
 organism_2_preys=
@@ -61,7 +65,7 @@ organism_3_predators=5,7
 # Fungivorous nematodes, 4
 organism_4_count=5500
 organism_4_range_dispersal=3
-organism_4_age_reproduction=19
+organism_4_age_reproduction=18
 organism_4_age_max=21
 organism_4_biomass_max=0.000829
 organism_4_biomass_reproduction=0.00035
@@ -108,9 +112,9 @@ organism_7_predators=
 
 # Collembolans, 8
 organism_8_count=1000
-organism_8_range_dispersal=6
+organism_8_range_dispersal=8
 organism_8_age_reproduction=15
-organism_8_age_max=17
+organism_8_age_max=19
 organism_8_biomass_max=0.001063
 organism_8_biomass_reproduction=0.000582
 organism_8_k=0.02

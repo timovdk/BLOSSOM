@@ -1,4 +1,5 @@
 #include "blossom.hpp"
+#include "logger.hpp"
 #include "neighbourhoods.hpp"
 #include "organism.hpp"
 #include "utils.hpp"
@@ -6,10 +7,10 @@
 #include <iostream>
 #include <sstream>
 
-BLOSSOM::BLOSSOM()
+BLOSSOM::BLOSSOM(const int index)
 {
     // Load configuration
-    loadConfig("./config/config.props");
+    loadConfig("./configs/config_" + std::to_string(index) + ".props");
 
     // Initialize RNGs
     defaultRNG = std::mt19937(defaultSeed);
@@ -29,7 +30,7 @@ void BLOSSOM::run()
         // Run one step
         step();
         // Log state
-        log(false);
+        logger->log(currentStep, agents, somGrid);
     }
 }
 
@@ -53,12 +54,13 @@ void BLOSSOM::loadConfig(const std::string &filename)
     }
 
     // Parse the configuration values
-    outputFile = config["output_file"];
-    defaultSeed = std::stoi(config["default_seed"]);
+    outputDir = config["output_dir"];
+    outputFileName = config["output_file_name"];
+    defaultSeed = std::stoul(config["default_seed"]);
     initialDistributionType = std::stoi(config["initial_distribution_type"]);
-    initialDistributionSeed = std::stoi(config["initial_distribution_seed"]);
+    initialDistributionSeed = std::stoul(config["initial_distribution_seed"]);
     nutrientType = std::stoi(config["nutrient_type"]);
-    nutrientSeed = std::stoi(config["nutrient_seed"]);
+    nutrientSeed = std::stoul(config["nutrient_seed"]);
     nutrientMean = std::stod(config["nutrient_mean"]);
     maxSteps = std::stoi(config["max_steps"]);
     gridWidth = std::stoi(config["grid_width"]);
@@ -100,8 +102,9 @@ void BLOSSOM::init()
     initializeSOM();
     // Then, populate the agent grid
     populate();
-    // Finally, log the initial state
-    log(true);
+    // Finally, initialize logger and log the initial state
+    logger = std::make_unique<Logger>(outputDir, outputFileName, gridWidth, gridHeight);
+    logger->log(currentStep, agents, somGrid);
 }
 
 void BLOSSOM::initializeSOM()
@@ -431,15 +434,20 @@ void BLOSSOM::feedOnAgents(OrganismGroup &agent, const dpt &location, const std:
 // Reproduction
 void BLOSSOM::reproduce(OrganismGroup &agent, std::vector<OrganismGroup> &ogs_to_add)
 {
-    // First, divide the agent's biomass
-    agent.divideBiomass();
-
-    // Then, if the agent is a fungi, reproduce in a random location
+    // Then, if the agent is a fungi, reproduce in a random neighbouring non-fungi-occupied location
     // Otherwise, reproduce in the same location
-    auto new_loc = agent.getType() == 1 ? vonNeumannR1(agent.getLocation().x, agent.getLocation().y, gridWidth,
-                                                       gridHeight)[defaultRNG() % 5]
-                                        : agent.getLocation();
-
+    auto new_loc = agent.getLocation();
+    if (agent.getType() == 1)
+    {
+        new_loc = vonNeumannR1(agent.getLocation().x, agent.getLocation().y, gridWidth, gridHeight)[defaultRNG() % 5];
+        for (const auto &og : getAgentsAtLocation(new_loc))
+        {
+            if (og.getType() == 1)
+            {
+                return;
+            }
+        }
+    }
     ogs_to_add.push_back(agent.reproduce(organismId, new_loc));
     organismId++; // Increment the organism ID for the new agent
 }
@@ -496,37 +504,4 @@ const std::vector<OrganismGroup> BLOSSOM::getAgentsAtLocation(const dpt &locatio
         result.push_back(agents.find(agent_id)->second);
     }
     return result;
-}
-
-void BLOSSOM::log(const bool init)
-{
-    // If init, create the log file and write the header
-    if (init)
-    {
-        std::ofstream outFile(outputFile);
-        if (!outFile.is_open())
-        {
-            std::cerr << "Failed to open log file.\n";
-            return;
-        }
-        outFile << "tick,id,type,x,y,age,biomass\n";
-        outFile.close();
-    }
-
-    // Append the current state to the log file
-    std::ofstream outFile(outputFile, std::ios::app);
-
-    if (!outFile.is_open())
-    {
-        std::cerr << "Failed to open log file.\n";
-        return;
-    }
-
-    for (const auto &p : agents)
-    {
-        const auto &agent = p.second;
-        outFile << currentStep << "," << agent.getId() << "," << agent.getType() << "," << agent.getLocation().x << ","
-                << agent.getLocation().y << "," << agent.getAge() << "," << agent.getBiomass() << "\n";
-    }
-    outFile.close();
 }
