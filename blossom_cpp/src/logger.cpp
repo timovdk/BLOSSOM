@@ -55,13 +55,10 @@ void Logger::logAgents(int currentStep, const std::unordered_map<int, OrganismGr
     {
         const auto &agent = p.second;
 
-        AgentLogEntry entry{currentStep,
-                            agent.getId(),
-                            agent.getType(),
-                            agent.getLocation().x,
-                            agent.getLocation().y,
-                            agent.getAge(),
-                            static_cast<float>(agent.getBiomass())};
+        AgentLogEntry entry{static_cast<uint32_t>(agent.getId()),         static_cast<float>(agent.getBiomass()),
+                            static_cast<uint16_t>(currentStep),           static_cast<uint16_t>(agent.getLocation().x),
+                            static_cast<uint16_t>(agent.getLocation().y), static_cast<uint8_t>(agent.getType()),
+                            static_cast<uint8_t>(agent.getAge())};
 
         outFileAgents.write(reinterpret_cast<char *>(&entry), sizeof(AgentLogEntry));
         ++linesLogged;
@@ -90,7 +87,8 @@ void Logger::logSOM(int currentStep, const std::vector<std::vector<double>> &som
     {
         for (int y = 0; y < gridHeight; ++y)
         {
-            SOMLogEntry entry{currentStep, x, y, static_cast<float>(somGrid[x][y])};
+            SOMLogEntry entry{static_cast<float>(somGrid[x][y]), static_cast<uint16_t>(currentStep),
+                              static_cast<uint16_t>(x), static_cast<uint16_t>(y)};
             outFileSOM.write(reinterpret_cast<char *>(&entry), sizeof(SOMLogEntry));
         }
     }

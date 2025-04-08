@@ -434,19 +434,12 @@ void BLOSSOM::feedOnAgents(OrganismGroup &agent, const dpt &location, const std:
 // Reproduction
 void BLOSSOM::reproduce(OrganismGroup &agent, std::vector<OrganismGroup> &ogs_to_add)
 {
-    // Then, if the agent is a fungi, reproduce in a random neighbouring non-fungi-occupied location
+    // Then, if the agent is a fungi, reproduce in a random neighbouring location
     // Otherwise, reproduce in the same location
     auto new_loc = agent.getLocation();
     if (agent.getType() == 1)
     {
         new_loc = vonNeumannR1(agent.getLocation().x, agent.getLocation().y, gridWidth, gridHeight)[defaultRNG() % 5];
-        for (const auto &og : getAgentsAtLocation(new_loc))
-        {
-            if (og.getType() == 1)
-            {
-                return;
-            }
-        }
     }
     ogs_to_add.push_back(agent.reproduce(organismId, new_loc));
     organismId++; // Increment the organism ID for the new agent
