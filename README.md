@@ -4,6 +4,7 @@ A soil biota agent based model (ABM) based on [Repast4Py](https://repast.github.
 ## C++ Instructions
 The `./blossom_cpp` folder contains the model itself, and the config file needed to run the model. The filestructure should look as follosw:
 
+```
 📁 **blossom_cpp/**
 ├── 📁 **bin/** (cpp bin folder)
 ├── 📁 **build/** (cpp build folder)
@@ -13,6 +14,7 @@ The `./blossom_cpp` folder contains the model itself, and the config file needed
 │   ├── 📁 **agents/** (will contain agent logs)
 │   └── 📁 **som/** (will contain som logs)
 └── 📁 **src/** (contains .cpp files)
+```
 
 In the `base_config.props` file, most of the parameters can be set. One parameter can be set in `src/main.cpp`: `const int num_trials` where the value determines the number of trials of the base_config, using different random seeds and different `N0` values for each trial.
 
