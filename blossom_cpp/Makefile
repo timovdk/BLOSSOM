@@ -1,7 +1,7 @@
 # Makefile
 
 CXX = g++
-CXXFLAGS = -O3 -std=c++20 -Iinclude -Wall -Wextra -Wpedantic -march=native -flto -fno-exceptions -fno-rtti
+CXXFLAGS = -O3 -std=c++20 -Iinclude -Wall -Wextra -Wpedantic -march=native -flto -fno-exceptions -fno-rtti -DNDEBUG
 SRC_DIR = src
 OBJ_DIR = build
 BIN_DIR = bin
