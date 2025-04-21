@@ -1,4 +1,5 @@
 #include "logger.hpp"
+#include <iostream>
 
 Logger::Logger(std::string outputDir, std::string outputFileName, int gridWidth, int gridHeight)
     : agentDir(outputDir + "agent/"), somDir(outputDir + "som/"), outputFileName(std::move(outputFileName)),

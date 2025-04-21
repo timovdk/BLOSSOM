@@ -3,8 +3,7 @@
 #include "organism.hpp"
 #include <cstdint>
 #include <fstream>
-#include <iostream>
-#include <map>
+#include <unordered_map>
 #include <string>
 
 #pragma pack(push, 1)

@@ -1,8 +1,7 @@
 #include "utils.hpp"
 #include <fstream>
 #include <iostream>
-#include <map>
-#include <random>
+#include <unordered_map>
 #include <sstream>
 
 std::vector<unsigned int> generate_seeds(unsigned int initial_seed, size_t num_seeds)

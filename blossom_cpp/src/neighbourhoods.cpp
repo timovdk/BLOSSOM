@@ -1,4 +1,5 @@
 #include "neighbourhoods.hpp"
+#include <cmath>
 
 dpt::dpt(int x, int y) : x(x), y(y)
 {
