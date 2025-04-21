@@ -3,15 +3,17 @@
 #include "neighbourhoods.hpp"
 #include "organism.hpp"
 #include "utils.hpp"
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <algorithm>
+#include <unordered_set>
 
 BLOSSOM::BLOSSOM(const int index)
 {
+    trialID = index;
     // Load configuration
-    loadConfig("./configs/config_" + std::to_string(index) + ".props");
+    loadConfig("./configs/config_" + std::to_string(trialID) + ".props");
 
     // Initialize RNGs
     defaultRNG = std::mt19937(defaultSeed);
@@ -24,14 +26,24 @@ BLOSSOM::BLOSSOM(const int index)
 
 void BLOSSOM::run()
 { // Run the simulation
-    while (currentStep < maxSteps)
+    bool earlyStop = false;
+    while ((currentStep < maxSteps) && !earlyStop)
     {
         // Increment step (0 == init step)
         currentStep++;
+        if (currentStep % earlyStopInterval == 0)
+        {
+            earlyStop = shouldStopEarly(agents, earlyStopMinTypes);
+        }
         // Run one step
         step();
         // Log state
         logger->log(currentStep, agents, somGrid);
+    }
+
+    if (earlyStop)
+    {
+        std::cerr << "Trial: " << trialID << " stopped early! Not enough organism types are alive." << std::endl;
     }
 }
 
@@ -66,6 +78,8 @@ void BLOSSOM::loadConfig(const std::string &filename)
     maxSteps = std::stoi(config["max_steps"]);
     gridWidth = std::stoi(config["grid_width"]);
     gridHeight = std::stoi(config["grid_height"]);
+    earlyStopInterval = std::stoi(config["early_stop_interval"]);
+    earlyStopMinTypes = std::stoi(config["early_stop_min_types"]);
 
     // Initialize organism data
     for (int i = 0; i <= 8; ++i)
@@ -498,4 +512,15 @@ const std::vector<OrganismGroup> BLOSSOM::getAgentsAtLocation(const dpt &locatio
         result.push_back(agents.find(agent_id)->second);
     }
     return result;
+}
+
+bool BLOSSOM::shouldStopEarly(const std::unordered_map<int, OrganismGroup> &agents, int min_types) const
+{
+    std::unordered_set<int> types;
+    for (const auto& agentPair : agents) {
+        types.insert(agentPair.second.getType());
+        if (static_cast<int>(types.size()) >= min_types) return false;
+    }
+
+    return true;
 }

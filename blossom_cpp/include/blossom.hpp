@@ -3,12 +3,12 @@
 #include "logger.hpp"
 #include "organism.hpp"
 #include <map>
+#include <memory>
 #include <random>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <memory>
 
 class BLOSSOM
 {
@@ -21,6 +21,7 @@ class BLOSSOM
 
     // Simulation parameters
     int currentStep = 0;
+    int trialID = 0;
     unsigned long long organismId = 0;
     std::string outputDir, outputFileName;
 
@@ -29,6 +30,7 @@ class BLOSSOM
     int initialDistributionType, nutrientType;
     double nutrientMean;
     int maxSteps, gridWidth, gridHeight;
+    int earlyStopInterval, earlyStopMinTypes;
 
     // RNGs
     std::mt19937 defaultRNG, initDistRNG, nutrientRNG;
@@ -70,6 +72,7 @@ class BLOSSOM
 
     // Utility functions
     const std::vector<OrganismGroup> getAgentsAtLocation(const dpt &location);
+    bool shouldStopEarly(const std::unordered_map<int, OrganismGroup> &agents, int min_types) const;
 
   public:
     BLOSSOM(const int index);
