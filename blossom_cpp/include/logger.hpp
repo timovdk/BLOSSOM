@@ -32,7 +32,7 @@ struct SOMLogEntry
 class Logger
 {
   public:
-    Logger(std::string outputDir, std::string outputFileName, int gridWidth, int gridHeight);
+    Logger(std::string outputDir, std::string outputFileName, int gridWidth, int gridHeight, const bool logging);
     ~Logger();
     void log(int currentStep, const std::unordered_map<int, OrganismGroup> &agents,
              const std::vector<std::vector<double>> &somGrid);
@@ -54,6 +54,7 @@ class Logger
     int fileIndexSOM = 0;
     int gridWidth;
     int gridHeight;
+    bool shouldLog;
 
     void logAgents(int currentStep, const std::unordered_map<int, OrganismGroup> &agents);
     void logSOM(int currentStep, const std::vector<std::vector<double>> &somGrid);

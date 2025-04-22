@@ -22,6 +22,7 @@ class BLOSSOM
     // Simulation parameters
     int currentStep = 0;
     int trialID = 0;
+    bool shouldLog = true;
     unsigned long long organismId = 0;
     std::string outputDir, outputFileName;
 
@@ -73,8 +74,9 @@ class BLOSSOM
     // Utility functions
     const std::vector<OrganismGroup> getAgentsAtLocation(const dpt &location);
     bool shouldStopEarly(const std::unordered_map<int, OrganismGroup> &agents, int min_types) const;
+    int computeSurvivors(const std::unordered_map<int, OrganismGroup>& agents,const std::vector<OrganismData>& organismData) const;
 
   public:
-    BLOSSOM(const int index);
+    BLOSSOM(const int index, const bool logging);
     void run();
 };

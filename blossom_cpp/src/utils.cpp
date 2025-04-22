@@ -135,3 +135,15 @@ int weightedChoice(const std::vector<double> &probs, std::mt19937 &rng)
 
     return probs.size() - 1;
 }
+
+std::unordered_map<std::string, std::string> parse_args(int argc, char* argv[]) {
+    std::unordered_map<std::string, std::string> args;
+    for (int i = 1; i < argc - 1; ++i) {
+        std::string key = argv[i];
+        if (key.rfind("--", 0) == 0) {
+            args[key] = argv[i + 1];
+            ++i;
+        }
+    }
+    return args;
+}

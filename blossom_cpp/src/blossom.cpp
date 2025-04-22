@@ -9,9 +9,10 @@
 #include <sstream>
 #include <unordered_set>
 
-BLOSSOM::BLOSSOM(const int index)
+BLOSSOM::BLOSSOM(const int index, const bool logging)
 {
     trialID = index;
+    shouldLog = logging;
     // Load configuration
     loadConfig("./configs/config_" + std::to_string(trialID) + ".props");
 
@@ -118,7 +119,7 @@ void BLOSSOM::init()
     // Then, populate the agent grid
     populate();
     // Finally, initialize logger and log the initial state
-    logger = std::make_unique<Logger>(outputDir, outputFileName, gridWidth, gridHeight);
+    logger = std::make_unique<Logger>(outputDir, outputFileName, gridWidth, gridHeight, shouldLog);
     logger->log(currentStep, agents, somGrid);
 }
 
@@ -258,6 +259,10 @@ void BLOSSOM::step()
     ogs_to_add.clear();
     handleKilledAgents(ogs_to_kill);
     ogs_to_kill.clear();
+
+    if(currentStep % 100 == 0){
+        std::cout << "Tick: " << currentStep << " Survivors: " << computeSurvivors(agents, organismData) << std::endl;
+    }
 }
 
 void BLOSSOM::simulateAgentStep(OrganismGroup &agent, std::set<int> &ogs_to_kill,
@@ -523,4 +528,25 @@ bool BLOSSOM::shouldStopEarly(const std::unordered_map<int, OrganismGroup> &agen
     }
 
     return true;
+}
+
+int BLOSSOM::computeSurvivors(const std::unordered_map<int, OrganismGroup>& agents,const std::vector<OrganismData>& organismData) const {
+    std::unordered_map<int, int> live_counts;
+
+    for (const auto& [id, agent] : agents) {
+        int type_id = agent.getType();
+        live_counts[type_id]++;
+    }
+
+    int survivors = 0;
+
+    for (int type_id = 0; type_id <= 8; ++type_id) {
+        int current_count = live_counts.count(type_id) ? live_counts[type_id] : 0;
+
+        if (current_count >= 0.05 * organismData.at(type_id).params.at("count")) {
+            ++survivors;
+        }
+    }
+
+    return survivors;
 }

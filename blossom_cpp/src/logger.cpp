@@ -1,9 +1,9 @@
 #include "logger.hpp"
 #include <iostream>
 
-Logger::Logger(std::string outputDir, std::string outputFileName, int gridWidth, int gridHeight)
+Logger::Logger(std::string outputDir, std::string outputFileName, int gridWidth, int gridHeight, const bool logging)
     : agentDir(outputDir + "agent/"), somDir(outputDir + "som/"), outputFileName(std::move(outputFileName)),
-      gridWidth(gridWidth), gridHeight(gridHeight)
+      gridWidth(gridWidth), gridHeight(gridHeight), shouldLog(logging)
 {
 }
 Logger::~Logger()
@@ -16,8 +16,10 @@ Logger::~Logger()
 void Logger::log(int currentStep, const std::unordered_map<int, OrganismGroup> &agents,
                  const std::vector<std::vector<double>> &somGrid)
 {
+    if(shouldLog) {
     logAgents(currentStep, agents);
     logSOM(currentStep, somGrid);
+    }
 }
 void Logger::reset()
 {
