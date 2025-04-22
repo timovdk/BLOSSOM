@@ -3,8 +3,8 @@
 #include "organism.hpp"
 #include <cstdint>
 #include <fstream>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 #pragma pack(push, 1)
 struct AgentLogEntry

@@ -260,7 +260,8 @@ void BLOSSOM::step()
     handleKilledAgents(ogs_to_kill);
     ogs_to_kill.clear();
 
-    if(currentStep % 100 == 0){
+    if (currentStep % 100 == 0)
+    {
         std::cout << "Tick: " << currentStep << " Survivors: " << computeSurvivors(agents, organismData) << std::endl;
     }
 }
@@ -521,29 +522,38 @@ const std::vector<OrganismGroup> BLOSSOM::getAgentsAtLocation(const dpt &locatio
 
 bool BLOSSOM::shouldStopEarly(const std::unordered_map<int, OrganismGroup> &agents, int min_types) const
 {
+    if (agents.size() > 800000)
+        return true;
     std::unordered_set<int> types;
-    for (const auto& agentPair : agents) {
+    for (const auto &agentPair : agents)
+    {
         types.insert(agentPair.second.getType());
-        if (static_cast<int>(types.size()) >= min_types) return false;
+        if (static_cast<int>(types.size()) >= min_types)
+            return false;
     }
 
     return true;
 }
 
-int BLOSSOM::computeSurvivors(const std::unordered_map<int, OrganismGroup>& agents,const std::vector<OrganismData>& organismData) const {
+int BLOSSOM::computeSurvivors(const std::unordered_map<int, OrganismGroup> &agents,
+                              const std::vector<OrganismData> &organismData) const
+{
     std::unordered_map<int, int> live_counts;
 
-    for (const auto& [id, agent] : agents) {
+    for (const auto &[id, agent] : agents)
+    {
         int type_id = agent.getType();
         live_counts[type_id]++;
     }
 
     int survivors = 0;
 
-    for (int type_id = 0; type_id <= 8; ++type_id) {
+    for (int type_id = 0; type_id <= 8; ++type_id)
+    {
         int current_count = live_counts.count(type_id) ? live_counts[type_id] : 0;
 
-        if (current_count >= 0.05 * organismData.at(type_id).params.at("count")) {
+        if (current_count >= 0.05 * organismData.at(type_id).params.at("count"))
+        {
             ++survivors;
         }
     }

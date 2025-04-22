@@ -12,4 +12,4 @@ void modify_config(const std::string &input_file, const std::string &output_file
 std::set<int> parseIntList(const std::string &str);
 void normalize(std::vector<double> &probs);
 int weightedChoice(const std::vector<double> &probs, std::mt19937 &rng);
-std::unordered_map<std::string, std::string> parse_args(int argc, char* argv[]);
+std::unordered_map<std::string, std::string> parse_args(int argc, char *argv[]);

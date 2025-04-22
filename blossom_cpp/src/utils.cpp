@@ -1,8 +1,8 @@
 #include "utils.hpp"
 #include <fstream>
 #include <iostream>
-#include <unordered_map>
 #include <sstream>
+#include <unordered_map>
 
 std::vector<unsigned int> generate_seeds(unsigned int initial_seed, size_t num_seeds)
 {
@@ -136,11 +136,14 @@ int weightedChoice(const std::vector<double> &probs, std::mt19937 &rng)
     return probs.size() - 1;
 }
 
-std::unordered_map<std::string, std::string> parse_args(int argc, char* argv[]) {
+std::unordered_map<std::string, std::string> parse_args(int argc, char *argv[])
+{
     std::unordered_map<std::string, std::string> args;
-    for (int i = 1; i < argc - 1; ++i) {
+    for (int i = 1; i < argc - 1; ++i)
+    {
         std::string key = argv[i];
-        if (key.rfind("--", 0) == 0) {
+        if (key.rfind("--", 0) == 0)
+        {
             args[key] = argv[i + 1];
             ++i;
         }

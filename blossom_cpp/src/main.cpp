@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     std::string base_config_path = "./calibrated_config.props";
     int num_trials = 1;
@@ -12,16 +12,20 @@ int main(int argc, char* argv[])
 
     auto args = parse_args(argc, argv);
 
-    if (args.count("--config")) {
+    if (args.count("--config"))
+    {
         base_config_path = args["--config"];
     }
-    if (args.count("--trials")) {
+    if (args.count("--trials"))
+    {
         num_trials = std::stoi(args["--trials"]);
     }
-    if (args.count("--seed")) {
+    if (args.count("--seed"))
+    {
         initial_seed = static_cast<unsigned int>(std::stoul(args["--seed"]));
     }
-    if (args.count("--logging")) {
+    if (args.count("--logging"))
+    {
         logging = static_cast<bool>(std::stoi(args["--logging"]));
     }
 

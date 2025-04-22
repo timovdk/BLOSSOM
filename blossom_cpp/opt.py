@@ -1,3 +1,4 @@
+import concurrent.futures
 import itertools
 import math
 import os
@@ -36,14 +37,12 @@ def evaluate(params, num_trials, seed):
             ],
             capture_output=True,
             text=True,
-            timeout=600,
         )
 
         # Parse the survivors count using regex
         survivors = 0
         tick = 0
         tick_survivor_pattern = re.compile(r"Tick: (\d+) Survivors: (\d+)")
-
         for line in result.stdout.splitlines():
             # Match the formatted output "Tick:<tick_number> Survivors:<survivor_count>"
             match = tick_survivor_pattern.search(line)
@@ -106,7 +105,7 @@ def generate_independent_grids(
 
         grid[i] = {
             "biomass_max": [
-                biomass_base * (1 + p / 100) for p in biomass_max_variation
+                round(biomass_base * (1 + p / 100), 8) for p in biomass_max_variation
             ],
             "age_max": [round(age_max_base * (1 + p / 100)) for p in age_max_variation],
         }
@@ -114,64 +113,55 @@ def generate_independent_grids(
     return grid
 
 
-# Perform grid search and write the results to a CSV file, with survivors for each organism
 def grid_search_and_write_to_file(
     base_config_file="base_config.props",
     output_file="organism_gridsearch_results.csv",
     num_trials=1,
     seed=42,
     n_orgs=9,
+    max_workers=4,  # Tune this based on your CPU
 ):
-    # Load base configuration from file
     base_params = load_base_config(base_config_file)
-
-    # Generate the independent grid of parameter variations
     grid = generate_independent_grids(
         base_params,
         n_orgs,
-        biomass_max_variation=[-10, 0, 10],
-        age_max_variation=[-10, 0, 10],
     )
 
-    # Store results
     results = []
 
-    # Iterate over each organism type and its parameter grid
-    for i in range(n_orgs):  # There are n_orgs organisms
+    for i in range(n_orgs):
         organism_results = []
-
-        for biomass_max, age_max in set(
+        combinations = set(
             itertools.product(grid[i]["biomass_max"], grid[i]["age_max"])
-        ):
+        )
+
+        def task(combo, org_index=i):  # capture current organism index
+            biomass_max, age_max = combo
             print(
-                f"Evaluating organism {i}: biomass_max={biomass_max}, age_max={age_max}"
+                f"Evaluating organism {org_index}: biomass_max={biomass_max}, age_max={age_max}"
             )
 
-            # Set up the parameter set for the current organism's grid combination
             params = base_params.copy()
-            params[f"organism_{i}_biomass_max"] = float(
-                biomass_max
-            )  # Set the biomass_max for this organism
-            params[f"organism_{i}_biomass_reproduction"] = float(
-                biomass_max / 2
-            )  # Set the biomass_max for this organism
-            params[f"organism_{i}_age_max"] = int(
-                age_max
-            )  # Set the age_max for this organism
-            params[f"organism_{i}_age_reproduction"] = int(math.floor(age_max / 2))
+            params[f"organism_{org_index}_biomass_max"] = biomass_max
+            params[f"organism_{org_index}_biomass_reproduction"] = round(
+                biomass_max / 2, 8
+            )
+            params[f"organism_{org_index}_age_max"] = age_max
+            params[f"organism_{org_index}_age_reproduction"] = math.floor(age_max / 2)
 
-            # Evaluate the combination
             logs = evaluate(params, num_trials=num_trials, seed=seed)
+            return [
+                [org_index, biomass_max, age_max, log["tick"], log["survivors"]]
+                for log in logs
+            ]
 
-            for log in logs:
-                organism_results.append(
-                    [i, biomass_max, age_max, log["tick"], log["survivors"]]
-                )
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(task, combo, i) for combo in combinations]
+            for future in concurrent.futures.as_completed(futures):
+                organism_results.extend(future.result())
 
-        # Append the organism results to the main results list
         results.extend(organism_results)
 
-    # Write results to CSV file
     df = pd.DataFrame(
         results, columns=["organism", "biomass_max", "age_max", "tick", "survivors"]
     )
@@ -199,8 +189,12 @@ def create_heatmap_from_results(
             organism_df = organism_df[organism_df["tick"] == selected_tick]
 
         # Pivot the DataFrame to make a grid with age_max as rows, biomass_max as columns, and survivors as values
-        heatmap_data = organism_df.pivot(
-            index="age_max", columns="biomass_max", values="survivors"
+        heatmap_data = (
+            organism_df.pivot(
+                index="age_max", columns="biomass_max", values="survivors"
+            )
+            .fillna(0)
+            .astype(int)
         )
 
         # Create a heatmap for this organism
@@ -229,7 +223,7 @@ def run_gridsearch_and_heatmap():
         output_file="organism_gridsearch_results.csv",
         num_trials=1,
         seed=42,
-        n_orgs=1,
+        n_orgs=2,
     )
 
     # Create a heatmap from the grid search results

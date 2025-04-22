@@ -16,9 +16,10 @@ Logger::~Logger()
 void Logger::log(int currentStep, const std::unordered_map<int, OrganismGroup> &agents,
                  const std::vector<std::vector<double>> &somGrid)
 {
-    if(shouldLog) {
-    logAgents(currentStep, agents);
-    logSOM(currentStep, somGrid);
+    if (shouldLog)
+    {
+        logAgents(currentStep, agents);
+        logSOM(currentStep, somGrid);
     }
 }
 void Logger::reset()
