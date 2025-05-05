@@ -128,7 +128,7 @@ def objective(
         trial.set_user_attr("pruned_reason", "Survivors < 5")
         raise optuna.TrialPruned()  # This prunes the trial
 
-    return final_log["survivors"]
+    return (final_log["tick"] / 1000) * (final_log["survivors"] / 9)
 
 
 parser = argparse.ArgumentParser()
