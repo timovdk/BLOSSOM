@@ -115,7 +115,7 @@ parser.add_argument("--n_trials", type=int, default=20)
 parser.add_argument("--n_jobs", type=int, default=2)
 args = parser.parse_args()
 
-storage_url = "postgresql:///optuna_study"
+storage_url = "postgresql://localhost:5433/optuna_study"
 
 study = optuna.create_study(
     direction="maximize",
