@@ -48,6 +48,11 @@ cp -r $HOME/BLOSSOM/blossom_cpp /scratch-shared/$USER
 
 cd /scratch-shared/$USER/blossom_cpp
 
+( while true; do
+    sleep 60
+    pg_isready -p $PGPORT
+done ) &
+
 # Run your Optuna script (which should connect to this DB)
 echo "Running Optuna optimization..."
 python ./hpc/run_optuna.py --n_trials 1000 --n_jobs 23

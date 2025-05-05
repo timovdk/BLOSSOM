@@ -48,9 +48,14 @@ cp -r $HOME/BLOSSOM/blossom_cpp /scratch-shared/$USER
 
 cd /scratch-shared/$USER/blossom_cpp
 
+( while true; do
+    sleep 60
+    pg_isready -p $PGPORT
+done ) &
+
 # Run your Optuna script (which should connect to this DB)
 echo "Running Optuna optimization..."
-python ./hpc/run_optuna.py --n_trials 2 --n_jobs 2
+python ./hpc/run_optuna.py --n_trials 46 --n_jobs 23
 
 # Stop PostgreSQL server cleanly
 echo "Stopping PostgreSQL..."
