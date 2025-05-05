@@ -1,9 +1,12 @@
-import os
-import tempfile
-import subprocess
-import re
 import argparse
+import datetime
+import os
+import re
+import subprocess
+import tempfile
+
 import optuna
+
 
 def load_base_config(filename):
     base_params = {}
@@ -30,6 +33,7 @@ def load_base_config(filename):
                 base_params[key] = float(value)  # Store as float for numerical values
 
     return base_params
+
 
 def evaluate(params, num_trials, seed):
     logs = []
@@ -58,7 +62,7 @@ def evaluate(params, num_trials, seed):
         )
         for err in result.stderr.splitlines():
             print(err)
-        
+
         for msg in result.stdout.splitlines():
             print(msg)
 
@@ -79,16 +83,26 @@ def evaluate(params, num_trials, seed):
     finally:
         os.remove(config_path)
 
-def objective(trial: optuna.trial.FrozenTrial, base_params, n_orgs=3, num_trials=1, seed=42):
+
+def objective(
+    trial: optuna.trial.FrozenTrial, base_params, n_orgs=3, num_trials=1, seed=42
+):
     import math
+
     params = base_params.copy()
 
     for i in range(n_orgs):
         biomass_base = base_params[f"organism_{i}_biomass_max"]
         age_max_base = base_params[f"organism_{i}_age_max"]
 
-        biomass_max = trial.suggest_float(f"organism_{i}_biomass_max", biomass_base * 0.8, biomass_base * 1.2)
-        age_max = trial.suggest_int(f"organism_{i}_age_max", math.floor(age_max_base * 0.8), math.ceil(age_max_base * 1.2))
+        biomass_max = trial.suggest_float(
+            f"organism_{i}_biomass_max", biomass_base * 0.8, biomass_base * 1.2
+        )
+        age_max = trial.suggest_int(
+            f"organism_{i}_age_max",
+            math.floor(age_max_base * 0.8),
+            math.ceil(age_max_base * 1.2),
+        )
 
         params[f"organism_{i}_biomass_max"] = round(biomass_max, 8)
         params[f"organism_{i}_biomass_reproduction"] = round(biomass_max / 2, 8)
@@ -116,6 +130,7 @@ def objective(trial: optuna.trial.FrozenTrial, base_params, n_orgs=3, num_trials
 
     return final_log["survivors"]
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_trials", type=int, default=20)
 parser.add_argument("--n_jobs", type=int, default=2)
@@ -125,9 +140,9 @@ storage_url = "postgresql://localhost:5433/optuna_study"
 
 study = optuna.create_study(
     direction="maximize",
-    study_name="organism_survival_opt",
+    study_name=f"{datetime.datetime.now().strftime('%b-%d-%H-%M')}_3_orgs",
     storage=storage_url,
-    load_if_exists=True
+    load_if_exists=True,
 )
 
 base_params = load_base_config("base_config.props")

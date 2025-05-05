@@ -260,7 +260,7 @@ void BLOSSOM::step()
     handleKilledAgents(ogs_to_kill);
     ogs_to_kill.clear();
 
-    if (currentStep % 100 == 0)
+    if (currentStep % 50 == 0)
     {
         std::cout << "Tick: " << currentStep << " Survivors: " << computeSurvivors(agents, organismData) << std::endl;
     }
