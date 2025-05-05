@@ -4,6 +4,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 std::vector<unsigned int> generate_seeds(unsigned int initial_seed, size_t num_seeds);
 std::string get_random_within_percentage(int original_value, double percentage);
