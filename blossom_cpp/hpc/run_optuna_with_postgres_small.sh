@@ -55,6 +55,8 @@ rm -rf /scratch-shared/$USER/blossom_cpp
 cp -r $HOME/BLOSSOM/blossom_cpp /scratch-shared/$USER
 
 cd /scratch-shared/$USER/blossom_cpp
+make clean
+make
 
 ( while true; do
     sleep 60
