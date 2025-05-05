@@ -104,8 +104,14 @@ def objective(trial: optuna.trial.FrozenTrial, base_params, n_orgs=3, num_trials
 
     final_log = logs[-1] if logs else {"tick": 0, "survivors": 0}
 
-    if final_log["tick"] < 1000 or final_log["survivors"] < 5:
-        trial.set_user_attr("pruned_reason", "Final tick < 1000 or survivors < 5")
+    if final_log["tick"] < 500 and final_log["survivors"] < 5:
+        trial.set_user_attr("pruned_reason", "Final tick < 500 and survivors < 5")
+        raise optuna.TrialPruned()  # This prunes the trial
+    elif final_log["tick"] < 500:
+        trial.set_user_attr("pruned_reason", "Final tick < 500")
+        raise optuna.TrialPruned()  # This prunes the trial
+    elif final_log["survivors"] < 5:
+        trial.set_user_attr("pruned_reason", "Survivors < 5")
         raise optuna.TrialPruned()  # This prunes the trial
 
     return final_log["survivors"]
