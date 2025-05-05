@@ -46,7 +46,7 @@ mkdir -p /scratch-shared/$USER
 rm -rf /scratch-shared/$USER/blossom_cpp
 cp -r $HOME/BLOSSOM/blossom_cpp /scratch-shared/$USER
 
-cd /scratch-shared/$USER/blossom_cpp
+cd /scratch-shared/$USER/blossom_cpp/hpc
 
 # Run your Optuna script (which should connect to this DB)
 echo "Running Optuna optimization..."
