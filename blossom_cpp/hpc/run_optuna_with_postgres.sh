@@ -46,11 +46,11 @@ mkdir -p /scratch-shared/$USER
 rm -rf /scratch-shared/$USER/blossom_cpp
 cp -r $HOME/BLOSSOM/blossom_cpp /scratch-shared/$USER
 
-cd /scratch-shared/$USER/blossom_cpp/hpc
+cd /scratch-shared/$USER/blossom_cpp
 
 # Run your Optuna script (which should connect to this DB)
 echo "Running Optuna optimization..."
-python run_optuna.py --n_trials 1000 --n_jobs 23
+python ./hpc/run_optuna.py --n_trials 1000 --n_jobs 23
 
 # Stop PostgreSQL server cleanly
 echo "Stopping PostgreSQL..."
