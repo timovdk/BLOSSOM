@@ -22,7 +22,7 @@ export PGPORT=5433  # Use a non-standard port if needed
 # Clean exit on interrupt
 function cleanup() {
     echo "Stopping PostgreSQL..."
-    pg_ctl -D "$PGDATA" -m fast stop
+    pg_ctl -D $PG_DATA -m fast stop
     exit 0
 }
 trap cleanup SIGINT SIGTERM
