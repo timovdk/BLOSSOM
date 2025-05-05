@@ -56,7 +56,11 @@ def evaluate(params, num_trials, seed):
             capture_output=True,
             text=True,
         )
-        print("test")
+        for err in result.stderr.splitlines():
+            print(err)
+        
+        for msg in result.stdout.splitlines():
+            print(msg)
 
         # Parse the survivors count using regex
         survivors = 0
