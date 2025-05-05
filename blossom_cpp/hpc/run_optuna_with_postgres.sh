@@ -19,6 +19,14 @@ LOGFILE="$HOME/pgsql/postgres.log"
 export PGHOST=127.0.0.1
 export PGPORT=5433  # Use a non-standard port if needed
 
+# Clean exit on interrupt
+function cleanup() {
+    echo "Stopping PostgreSQL..."
+    pg_ctl -D "$PGDATA" -m fast stop
+    exit 0
+}
+trap cleanup SIGINT SIGTERM
+
 # Start PostgreSQL server
 echo "Starting PostgreSQL..."
 pg_ctl -D $PG_DATA -l $LOGFILE -o "-p $PGPORT" start
@@ -57,6 +65,4 @@ done ) &
 echo "Running Optuna optimization..."
 python ./hpc/run_optuna.py --n_trials 1000 --n_jobs 23
 
-# Stop PostgreSQL server cleanly
-echo "Stopping PostgreSQL..."
-pg_ctl -D $PG_DATA stop
+cleanup
