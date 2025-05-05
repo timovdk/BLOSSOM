@@ -16,7 +16,7 @@ PG_DATA="$HOME/pgsql/data"
 LOGFILE="$HOME/pgsql/postgres.log"
 
 # Optional: ensure PostgreSQL uses a local socket in home dir to avoid conflicts
-export PGHOST=$PG_DATA
+export PGHOST=127.0.0.1
 export PGPORT=5433  # Use a non-standard port if needed
 
 # Start PostgreSQL server
