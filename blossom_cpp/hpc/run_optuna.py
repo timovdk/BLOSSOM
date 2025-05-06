@@ -155,7 +155,7 @@ study = optuna.create_study(
 base_params = load_base_config("base_config.props")
 
 study.optimize(
-    lambda trial: objective(trial, base_params, n_orgs=3, num_trials=1),
+    lambda trial: objective(trial, base_params, n_orgs=9, num_trials=1),
     n_trials=args.n_trials,
     n_jobs=args.n_jobs,
 )

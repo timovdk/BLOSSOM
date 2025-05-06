@@ -552,7 +552,7 @@ int BLOSSOM::computeSurvivors(const std::unordered_map<int, OrganismGroup> &agen
     {
         int current_count = live_counts.count(type_id) ? live_counts[type_id] : 0;
 
-        if (current_count >= 0.05 * organismData.at(type_id).params.at("count"))
+        if (current_count >= 0.01 * organismData.at(type_id).params.at("count"))
         {
             ++survivors;
         }
