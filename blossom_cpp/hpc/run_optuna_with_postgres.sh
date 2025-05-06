@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=24
 #SBATCH --partition=genoa
-#SBATCH --time=10:00:00
+#SBATCH --time=24:00:00
 
 # Load modules (modify these as needed)
 module load 2024
@@ -62,6 +62,6 @@ done ) &
 
 # Run your Optuna script (which should connect to this DB)
 echo "Running Optuna optimization..."
-python ./hpc/run_optuna.py --n_trials 500 --n_jobs 23
+python ./hpc/run_optuna.py --n_trials 1250 --n_jobs 23
 
 cleanup
