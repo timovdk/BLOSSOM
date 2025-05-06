@@ -49,12 +49,9 @@ else
     echo "Database optuna_study already exists."
 fi
 
-mkdir -p /scratch-shared/$USER
+cp -r $HOME/BLOSSOM/blossom_cpp "$TMPDIR"
 
-rm -rf /scratch-shared/$USER/blossom_cpp
-cp -r $HOME/BLOSSOM/blossom_cpp /scratch-shared/$USER
-
-cd /scratch-shared/$USER/blossom_cpp
+cd $TMPDIR/blossom_cpp
 make clean
 make
 

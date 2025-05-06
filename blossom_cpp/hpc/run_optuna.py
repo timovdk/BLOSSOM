@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import math
 import os
 import re
 import subprocess
@@ -87,8 +88,6 @@ def evaluate(params, num_trials, seed):
 def objective(
     trial: optuna.trial.FrozenTrial, base_params, n_orgs=3, num_trials=1, seed=42
 ):
-    import math
-
     params = base_params.copy()
 
     for i in range(n_orgs):
