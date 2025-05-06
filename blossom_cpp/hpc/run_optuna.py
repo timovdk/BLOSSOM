@@ -61,11 +61,6 @@ def evaluate(params, num_trials, seed):
             capture_output=True,
             text=True,
         )
-        for err in result.stderr.splitlines():
-            print(err)
-
-        for msg in result.stdout.splitlines():
-            print(msg)
 
         # Parse the survivors count using regex
         survivors = 0
@@ -77,7 +72,6 @@ def evaluate(params, num_trials, seed):
             if match:
                 tick = int(match.group(1))
                 survivors = int(match.group(2))
-                print(f"Tick {tick}: {survivors} survivors")  # Debugging output
                 logs.append({"tick": tick, "survivors": survivors})
 
         return logs
@@ -86,11 +80,11 @@ def evaluate(params, num_trials, seed):
 
 
 def objective(
-    trial: optuna.trial.FrozenTrial, base_params, n_orgs=3, num_trials=1, seed=42
+    trial: optuna.trial.FrozenTrial, base_params, orgs, num_trials=1, seed=42
 ):
     params = base_params.copy()
 
-    for i in range(n_orgs):
+    for i in orgs:
         biomass_max_base = base_params[f"organism_{i}_biomass_max"]
         age_max_base = base_params[f"organism_{i}_age_max"]
         biomass_repr_base = base_params[f"organism_{i}_biomass_reproduction"]
@@ -155,7 +149,7 @@ study = optuna.create_study(
 base_params = load_base_config("base_config.props")
 
 study.optimize(
-    lambda trial: objective(trial, base_params, n_orgs=9, num_trials=1),
+    lambda trial: objective(trial, base_params, orgs=[0, 1, 2, 3, 4, 5, 6, 7, 8], num_trials=1),
     n_trials=args.n_trials,
     n_jobs=args.n_jobs,
 )
