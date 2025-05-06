@@ -522,7 +522,7 @@ const std::vector<OrganismGroup> BLOSSOM::getAgentsAtLocation(const dpt &locatio
 
 bool BLOSSOM::shouldStopEarly(const std::unordered_map<int, OrganismGroup> &agents, int min_types) const
 {
-    if (agents.size() > 1500000)
+    if (agents.size() > 1000000)
         return true;
     std::unordered_set<int> types;
     for (const auto &agentPair : agents)
@@ -552,7 +552,7 @@ int BLOSSOM::computeSurvivors(const std::unordered_map<int, OrganismGroup> &agen
     {
         int current_count = live_counts.count(type_id) ? live_counts[type_id] : 0;
 
-        if (current_count >= 0.01 * organismData.at(type_id).params.at("count"))
+        if (current_count >= 0.05 * organismData.at(type_id).params.at("count"))
         {
             ++survivors;
         }
