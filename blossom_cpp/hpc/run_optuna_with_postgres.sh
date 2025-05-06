@@ -10,7 +10,7 @@ module load 2024
 module load Python/3.12.3-GCCcore-13.3.0
 module load PostgreSQL/16.4-GCCcore-13.3.0
 
-source $HOME/BLOSSOM/.venv/bin/activate
+source $HOME/venvs/blossom/bin/activate
 
 PG_DATA="$HOME/pgsql/data"
 LOGFILE="$HOME/pgsql/postgres.log"
