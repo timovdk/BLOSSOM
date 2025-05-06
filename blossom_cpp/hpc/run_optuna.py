@@ -129,7 +129,7 @@ def objective(
 
     final_log = logs[-1] if logs else {"tick": 0, "survivors": 0}
 
-    return (final_log["tick"] / 1000) * (final_log["survivors"] / 9)
+    return (0.7 * (final_log["tick"] / 1000)) * (0.3 * (final_log["survivors"] / 9))
 
 
 parser = argparse.ArgumentParser()
@@ -149,7 +149,9 @@ study = optuna.create_study(
 base_params = load_base_config("base_config.props")
 
 study.optimize(
-    lambda trial: objective(trial, base_params, orgs=[0, 1, 2, 3, 4, 5, 6, 7, 8], num_trials=1),
+    lambda trial: objective(
+        trial, base_params, orgs=[0, 1, 2, 3, 4, 5, 6, 7, 8], num_trials=1
+    ),
     n_trials=args.n_trials,
     n_jobs=args.n_jobs,
 )
