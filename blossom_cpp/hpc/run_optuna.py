@@ -117,16 +117,6 @@ def objective(
 
     final_log = logs[-1] if logs else {"tick": 0, "survivors": 0}
 
-    if final_log["tick"] < 500 and final_log["survivors"] < 5:
-        trial.set_user_attr("pruned_reason", "Final tick < 500 and survivors < 5")
-        raise optuna.TrialPruned()  # This prunes the trial
-    elif final_log["tick"] < 500:
-        trial.set_user_attr("pruned_reason", "Final tick < 500")
-        raise optuna.TrialPruned()  # This prunes the trial
-    elif final_log["survivors"] < 5:
-        trial.set_user_attr("pruned_reason", "Survivors < 5")
-        raise optuna.TrialPruned()  # This prunes the trial
-
     return (final_log["tick"] / 1000) * (final_log["survivors"] / 9)
 
 
