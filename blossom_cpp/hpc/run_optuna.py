@@ -152,7 +152,7 @@ tpe_sampler = optuna.samplers.TPESampler(
 study = optuna.create_study(
     sampler=tpe_sampler,
     direction="maximize",
-    study_name=f"{datetime.datetime.now().strftime('%b-%d-%H-%M')}_3_orgs",
+    study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] - 9_orgs_weighted_objective",
     storage=storage_url,
     load_if_exists=True,
 )
