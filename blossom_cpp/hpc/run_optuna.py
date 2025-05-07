@@ -83,6 +83,8 @@ def objective(
     trial: optuna.trial.FrozenTrial, base_params, orgs, num_trials=1, seed=42
 ):
     params = base_params.copy()
+    penalty = 0
+    max_penalty = 0
 
     for i in orgs:
         biomass_max_base = base_params[f"organism_{i}_biomass_max"]
@@ -107,7 +109,8 @@ def objective(
         )
 
         if biomass_reproduction > biomass_max:
-            return (biomass_reproduction - biomass_max) ** 0.3
+            penalty += (biomass_reproduction - biomass_max) ** 0.3
+            max_penalty += biomass_max_base * 1.2 - biomass_max_base * 0.8
 
         age_reproduction = trial.suggest_int(
             f"organism_{i}_age_reproduction",
@@ -116,7 +119,8 @@ def objective(
         )
 
         if age_reproduction > age_max:
-            return (age_reproduction - age_max) ** 0.3
+            penalty += (age_reproduction - age_max) ** 0.3
+            max_penalty += math.ceil(age_max_base * 1.2) - math.floor(age_max_base * 0.8)
 
         k = trial.suggest_float(f"organism_{i}_k", k_base * 0.8, k_base * 1.2)
 
@@ -126,6 +130,9 @@ def objective(
         params[f"organism_{i}_age_reproduction"] = age_reproduction
         params[f"organism_{i}_k"] = k
 
+    if penalty > 0:
+        return -round((penalty / max_penalty), 4)
+    
     logs = evaluate(params, num_trials=num_trials, seed=seed)
 
     for log in logs:
