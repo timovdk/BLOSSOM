@@ -103,14 +103,20 @@ def objective(
         biomass_reproduction = trial.suggest_float(
             f"organism_{i}_biomass_reproduction",
             biomass_repr_base * 0.8,
-            min(biomass_repr_base * 1.2, biomass_max),
+            biomass_repr_base * 1.2,
         )
+
+        if biomass_reproduction > biomass_max:
+            return (biomass_reproduction - biomass_max) ** 0.3
 
         age_reproduction = trial.suggest_int(
             f"organism_{i}_age_reproduction",
             math.floor(age_repr_base * 0.8),
-            min(math.ceil(age_repr_base * 1.2), age_max),
+            math.ceil(age_repr_base * 1.2),
         )
+
+        if age_reproduction > age_max:
+            return (age_reproduction - age_max) ** 0.3
 
         k = trial.suggest_float(f"organism_{i}_k", k_base * 0.8, k_base * 1.2)
 
