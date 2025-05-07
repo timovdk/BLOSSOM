@@ -139,7 +139,18 @@ args = parser.parse_args()
 
 storage_url = "postgresql://localhost:5433/optuna_study"
 
+tpe_sampler = optuna.samplers.TPESampler(
+    n_startup_trials=250,
+    n_ei_candidates=64,
+    multivariate=True,
+    consider_magic_clip=True,
+    consider_endpoints=True,
+    constant_liar=True,
+    seed=42,
+)
+
 study = optuna.create_study(
+    sampler=tpe_sampler,
     direction="maximize",
     study_name=f"{datetime.datetime.now().strftime('%b-%d-%H-%M')}_3_orgs",
     storage=storage_url,
