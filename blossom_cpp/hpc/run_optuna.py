@@ -142,7 +142,7 @@ def objective(
 
     final_log = logs[-1] if logs else {"tick": 0, "survivors": 0}
 
-    return (0.7 * (final_log["tick"] / 1000)) * (0.3 * (final_log["survivors"] / 9))
+    return (final_log["tick"] / 1000) * (final_log["survivors"] / 9)
 
 
 parser = argparse.ArgumentParser()
@@ -155,7 +155,7 @@ storage_url = "postgresql://localhost:5433/optuna_study"
 tpe_sampler = optuna.samplers.TPESampler(
     n_startup_trials=250,
     n_ei_candidates=64,
-    multivariate=False,
+    multivariate=True,
     consider_magic_clip=True,
     consider_endpoints=True,
     constant_liar=True,
