@@ -148,7 +148,6 @@ storage_url = "postgresql://localhost:5433/optuna_study"
 tpe_sampler = optuna.samplers.TPESampler(
     n_startup_trials=250,
     n_ei_candidates=64,
-    multivariate=True,
     consider_magic_clip=True,
     consider_endpoints=True,
     constant_liar=True,
@@ -158,7 +157,7 @@ tpe_sampler = optuna.samplers.TPESampler(
 study = optuna.create_study(
     sampler=tpe_sampler,
     direction="maximize",
-    study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] 9 Organisms, Weighted Objective",
+    study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] 9 Organisms, Regular Objective",
     storage=storage_url,
     load_if_exists=True,
 )

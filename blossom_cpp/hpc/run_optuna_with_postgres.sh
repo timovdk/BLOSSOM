@@ -62,6 +62,6 @@ done ) &
 
 # Run your Optuna script (which should connect to this DB)
 echo "Running Optuna optimization..."
-python ./hpc/run_optuna.py --n_trials 1500 --n_jobs 47
+python ./hpc/run_optuna.py --n_trials 2000 --n_jobs 47
 
 cleanup
