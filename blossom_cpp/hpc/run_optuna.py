@@ -92,18 +92,18 @@ def objective(
         k_base = base_params[f"organism_{i}_k"]
 
         biomass_max = trial.suggest_float(
-            f"organism_{i}_biomass_max", biomass_max_base * 0.75, biomass_max_base * 1.25
+            f"organism_{i}_biomass_max", biomass_max_base * 0.9, biomass_max_base * 1.1
         )
         age_max = trial.suggest_int(
             f"organism_{i}_age_max",
-            math.floor(age_max_base * 0.75),
-            math.ceil(age_max_base * 1.25),
+            math.floor(age_max_base * 0.9),
+            math.ceil(age_max_base * 1.1),
         )
 
         biomass_reproduction = trial.suggest_float(
             f"organism_{i}_biomass_reproduction",
-            biomass_repr_base * 0.75,
-            biomass_repr_base * 1.25,
+            biomass_repr_base * 0.9,
+            biomass_repr_base * 1.1,
         )
 
         if biomass_reproduction > biomass_max:
@@ -111,14 +111,14 @@ def objective(
 
         age_reproduction = trial.suggest_int(
             f"organism_{i}_age_reproduction",
-            math.floor(age_repr_base * 0.75),
-            math.ceil(age_repr_base * 1.25),
+            math.floor(age_repr_base * 0.9),
+            math.ceil(age_repr_base * 1.1),
         )
 
         if age_reproduction > age_max:
             return 0
 
-        k = trial.suggest_float(f"organism_{i}_k", k_base * 0.75, k_base * 1.25)
+        k = trial.suggest_float(f"organism_{i}_k", k_base * 0.9, k_base * 1.1)
 
         params[f"organism_{i}_biomass_max"] = round(biomass_max, 8)
         params[f"organism_{i}_biomass_reproduction"] = round(biomass_reproduction, 8)
