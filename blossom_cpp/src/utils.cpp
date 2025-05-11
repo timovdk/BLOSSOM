@@ -17,19 +17,17 @@ std::vector<unsigned int> generate_seeds(unsigned int initial_seed, size_t num_s
     return seeds;
 }
 
-std::string get_random_within_percentage(int original_value, double percentage)
+std::string get_random_within_percentage(int original_value, double percentage, std::mt19937 &rng)
 {
     int deviation = static_cast<int>(original_value * percentage);
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(original_value - deviation, original_value + deviation);
 
-    return std::to_string(dis(gen));
+    return std::to_string(dis(rng));
 }
 
-std::string modify_config(const std::string &input_file, const int index,
-                   std::vector<unsigned int> &seeds)
+std::string modify_config(const std::string &input_file, const int index, std::vector<unsigned int> &seeds,
+                          const unsigned int initial_seed)
 {
     std::ifstream infile(input_file);
     if (!infile.is_open())
@@ -70,10 +68,11 @@ std::string modify_config(const std::string &input_file, const int index,
     seeds.pop_back();
 
     float deviation = std::stof(config_map["deviation"]);
+    std::mt19937 rng(initial_seed + index);
     for (int i = 0; i <= 8; ++i)
     {
         std::string key = "organism_" + std::to_string(i) + "_count";
-        config_map[key] = get_random_within_percentage(std::stoi(config_map[key]), deviation);
+        config_map[key] = get_random_within_percentage(std::stoi(config_map[key]), deviation, rng);
     }
 
     std::string config_file_name = "./configs/config_" + config_map["output_file_name"] + ".props";

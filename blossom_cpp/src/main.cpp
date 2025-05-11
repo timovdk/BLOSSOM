@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     {
         std::cout << "Running simulation " << i << std::endl;
 
-        auto config_file_name = modify_config(base_config_path, i, seeds);
+        auto config_file_name = modify_config(base_config_path, i, seeds, initial_seed);
 
         BLOSSOM model(i, config_file_name, logging);
         model.run();
