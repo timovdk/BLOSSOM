@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[])
 {
-    std::string base_config_path = "./calibrated_config.props";
+    std::string base_config_path = "./optimized_config.props";
     int num_trials = 1;
     unsigned int initial_seed = 42;
     bool logging = true;
@@ -36,10 +36,9 @@ int main(int argc, char *argv[])
     {
         std::cout << "Running simulation " << i << std::endl;
 
-        std::string out = "./configs/config_" + std::to_string(i) + ".props";
-        modify_config(base_config_path, out, i, seeds);
+        auto config_file_name = modify_config(base_config_path, i, seeds);
 
-        BLOSSOM model(i, logging);
+        BLOSSOM model(i, config_file_name, logging);
         model.run();
     }
 

@@ -78,6 +78,6 @@ class BLOSSOM
                          const std::vector<OrganismData> &organismData) const;
 
   public:
-    BLOSSOM(const int index, const bool logging);
+    BLOSSOM(const int index, const std::string config_file_name, const bool logging);
     void run();
 };

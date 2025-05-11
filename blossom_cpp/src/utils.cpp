@@ -28,14 +28,14 @@ std::string get_random_within_percentage(int original_value, double percentage)
     return std::to_string(dis(gen));
 }
 
-void modify_config(const std::string &input_file, const std::string &output_file, const int index,
+std::string modify_config(const std::string &input_file, const int index,
                    std::vector<unsigned int> &seeds)
 {
     std::ifstream infile(input_file);
     if (!infile.is_open())
     {
         std::cerr << "Could not open the file!" << std::endl;
-        return;
+        return input_file;
     }
 
     std::unordered_map<std::string, std::string> config_map;
@@ -59,9 +59,7 @@ void modify_config(const std::string &input_file, const std::string &output_file
 
     infile.close();
 
-    config_map["output_file_name"] = std::stoi(config_map["initial_distribution_type"]) == 0
-                                         ? "random_" + std::to_string(index)
-                                         : "clustered_" + std::to_string(index);
+    config_map["output_file_name"] = config_map["output_file_name"] + "_" + std::to_string(index);
     config_map["default_seed"] = std::to_string(seeds.back());
     seeds.pop_back();
 
@@ -78,11 +76,12 @@ void modify_config(const std::string &input_file, const std::string &output_file
         config_map[key] = get_random_within_percentage(std::stoi(config_map[key]), deviation);
     }
 
-    std::ofstream outfile(output_file);
+    std::string config_file_name = "./configs/config_" + config_map["output_file_name"] + ".props";
+    std::ofstream outfile(config_file_name);
     if (!outfile.is_open())
     {
         std::cerr << "Could not open the output file!" << std::endl;
-        return;
+        return input_file;
     }
 
     for (const auto &line : config_map)
@@ -91,6 +90,7 @@ void modify_config(const std::string &input_file, const std::string &output_file
     }
 
     outfile.close();
+    return config_file_name;
 }
 
 std::set<int> parseIntList(const std::string &str)

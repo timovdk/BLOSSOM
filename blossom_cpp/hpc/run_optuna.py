@@ -15,37 +15,34 @@ def load_base_config(filename):
 
     with open(filename, "r") as f:
         for line in f:
-            line = line.strip()  # Remove leading/trailing whitespace
-            if not line or line.startswith("#"):  # Skip empty lines and comments
+            line = line.strip()
+            if not line or line.startswith("#"):
                 continue
 
             key, value = line.split("=")
             key = key.strip()
             value = value.strip()
 
-            # Check if the key contains "preys" or "predators" (case insensitive)
             if (
                 "preys" in key.lower()
                 or "predators" in key.lower()
                 or key in string_keys
             ):
-                base_params[key] = value  # Store as string
+                base_params[key] = value
             else:
-                base_params[key] = float(value)  # Store as float for numerical values
+                base_params[key] = float(value)
 
     return base_params
 
 
 def evaluate(params, num_trials, seed):
     logs = []
-    # Write the full params dict to a temp config file
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmpfile:
         for key, value in params.items():
             tmpfile.write(f"{key}={value}\n")
         config_path = tmpfile.name
 
     try:
-        # Run simulation
         result = subprocess.run(
             [
                 "./bin/blossom",
@@ -125,7 +122,7 @@ def objective(
         params[f"organism_{i}_age_max"] = age_max
         params[f"organism_{i}_age_reproduction"] = age_reproduction
         params[f"organism_{i}_k"] = k
-    
+
     logs = evaluate(params, num_trials=num_trials, seed=seed)
 
     for log in logs:

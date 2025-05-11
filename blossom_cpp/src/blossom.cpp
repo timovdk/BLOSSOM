@@ -9,12 +9,12 @@
 #include <sstream>
 #include <unordered_set>
 
-BLOSSOM::BLOSSOM(const int index, const bool logging)
+BLOSSOM::BLOSSOM(const int index, const std::string config_file_name, const bool logging)
 {
     trialID = index;
     shouldLog = logging;
     // Load configuration
-    loadConfig("./configs/config_" + std::to_string(trialID) + ".props");
+    loadConfig(config_file_name);
 
     // Initialize RNGs
     defaultRNG = std::mt19937(defaultSeed);
