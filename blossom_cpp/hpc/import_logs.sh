@@ -1,2 +1,2 @@
 #!/bin/bash
-scp -rp tvanderkuil@snellius.surf.nl:./BLOSSOM/blossom_cpp/outputs ~/Documents/
+scp -rp tvanderkuil@snellius.surf.nl:./blossom_cpp/outputs ~/Documents/

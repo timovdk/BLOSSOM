@@ -17,10 +17,14 @@ cd $TMPDIR/blossom_cpp
 make clean
 make
 
+# Trap to copy results on unexpected exit
+trap 'echo "Script exiting, saving crash snapshot..."; rsync -a "$TMPDIR/blossom_cpp/" "$HOME/blossom_cpp_crashdump/"' EXIT
+
 # Run BLOSSOM
 echo "Running BLOSSOM..."
 python ./hpc/run_blossom.py --n_trials 47 --n_jobs 47 --seed 135432
 
+# MAKE SURE WE COPY THIS TO THE RIGHT PLACE, THIS IS FOR SURE BIG DATA! (~5GB per full run (oops))
 cp -r $TMPDIR/blossom_cpp $HOME/
 
-cleanup
+exit 0
