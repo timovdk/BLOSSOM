@@ -60,7 +60,7 @@ make
     pg_isready -p $PGPORT
 done ) &
 
-# Run your Optuna script (which should connect to this DB)
+# Run Optuna script
 echo "Running Optuna optimization..."
 python ./hpc/run_optuna.py --n_trials 3000 --n_jobs 47
 

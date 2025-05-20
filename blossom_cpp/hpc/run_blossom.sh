@@ -17,9 +17,9 @@ cd $TMPDIR/blossom_cpp
 make clean
 make
 
-# Run your Optuna script (which should connect to this DB)
+# Run BLOSSOM
 echo "Running BLOSSOM..."
-python ./hpc/run_blossom.py --n_trials 500 --n_jobs 23 --seed 135432
+python ./hpc/run_blossom.py --n_trials 47 --n_jobs 47 --seed 135432
 
 cp -r $TMPDIR/blossom_cpp $HOME/
 
