@@ -42,7 +42,7 @@ dtype_som = np.dtype(
 
 def bin_to_parquet(idx, d_agent, filename, output_dir):
     for sub in ["agent/", "som/"]:
-        files = glob.glob(output_dir + sub + f"{idx}_" + filename + "_*_*.bin")
+        files = glob.glob(output_dir + sub + f"{str(idx)}_" + filename + "_*_*.bin")
 
         log_files = []
 
@@ -53,7 +53,7 @@ def bin_to_parquet(idx, d_agent, filename, output_dir):
                 _, _, rotation_id = match.groups()
                 log_files.append((int(rotation_id), file))
 
-        print(f"Processing setup {idx} with {len(log_files)} rotated files...")
+        print(f"Processing setup {str(idx)} with {len(log_files)} rotated files...")
         log_files.sort()
         dfs = []
         for _, path in log_files:
@@ -62,7 +62,7 @@ def bin_to_parquet(idx, d_agent, filename, output_dir):
             dfs.append(df)
 
         full_df = pd.concat(dfs)
-        output_filename = f"{filename}_{idx}{'_SOM' if sub == 'som/' else ''}.parquet"
+        output_filename = f"{filename}_{str(idx)}{'_SOM' if sub == 'som/' else ''}.parquet"
         full_df.to_parquet(output_dir + output_filename, compression="zstd")
 
         # Clean up .bin files
