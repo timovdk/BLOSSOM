@@ -9,7 +9,7 @@
 module load 2024
 module load Python/3.12.3-GCCcore-13.3.0
 
-#source $HOME/venvs/blossom/bin/activate
+source $HOME/venvs/blossom/bin/activate
 
 cp -r $HOME/BLOSSOM/blossom_cpp "$TMPDIR"
 
