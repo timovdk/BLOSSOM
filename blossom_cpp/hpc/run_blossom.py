@@ -112,7 +112,7 @@ def run_blossom(params, seed, extended_log):
                 "--seed",
                 str(seed),
                 "--extended_logging",
-                int(extended_log),
+                str(int(extended_log)),
             ],
             capture_output=True,
             text=True,
