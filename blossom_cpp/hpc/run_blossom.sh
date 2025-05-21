@@ -11,7 +11,7 @@ module load Python/3.12.3-GCCcore-13.3.0
 
 source $HOME/venvs/blossom/bin/activate
 # OR install dependencies manually
-# pip install numpy pandas
+# pip install numpy pandas pyarrow
 
 cp -r $HOME/BLOSSOM/blossom_cpp "$TMPDIR"
 
