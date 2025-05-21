@@ -23,7 +23,10 @@ make
 echo "Running BLOSSOM..."
 python ./hpc/run_blossom.py --n_trials 10 --n_jobs 10 --seed 135432
 
-# Should copy to deepstore
-cp -r $TMPDIR/blossom_cpp $HOME/
+# Should copy to deepstore (maybe with rsync/rclone?)
+# Copy input configs
+mv $TMPDIR/blossom_cpp/configs/*.props $HOME/blossom_out/configs/
+# Copy output parquets
+mv $TMPDIR/blossom_cpp/outputs/*.parquet $HOME/blossom_out/outputs/
 
 exit 0
