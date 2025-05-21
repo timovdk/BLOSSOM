@@ -139,10 +139,10 @@ def main(args):
         idx, seed = idx_seed
         try:
             params = prepare_parameters(idx, base_params)
-            run_blossom(params, seed, args.extended_log)
+            run_blossom(params, seed, args.extended_logs)
             bin_to_parquet(
                 idx,
-                dtype_agent if args.extended_log else dtype_agent_small,
+                dtype_agent if args.extended_logs else dtype_agent_small,
                 base_params["output_file_name"],
                 base_params["output_dir"],
             )
