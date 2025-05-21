@@ -1,9 +1,10 @@
 #include "logger.hpp"
 #include <iostream>
 
-Logger::Logger(std::string outputDir, std::string outputFileName, int gridWidth, int gridHeight, const bool logging)
+Logger::Logger(std::string outputDir, std::string outputFileName, int gridWidth, int gridHeight, const bool logging,
+               const bool extLog)
     : agentDir(outputDir + "agent/"), somDir(outputDir + "som/"), outputFileName(std::move(outputFileName)),
-      gridWidth(gridWidth), gridHeight(gridHeight), shouldLog(logging)
+      gridWidth(gridWidth), gridHeight(gridHeight), shouldLog(logging), extendedLog(extLog)
 {
 }
 Logger::~Logger()
@@ -59,13 +60,25 @@ void Logger::logAgents(int currentStep, const std::unordered_map<int, OrganismGr
     {
         const auto &agent = p.second;
 
-        AgentLogEntry entry{static_cast<uint32_t>(agent.getId()),         static_cast<float>(agent.getBiomass()),
-                            static_cast<uint16_t>(currentStep),           static_cast<uint16_t>(agent.getLocation().x),
-                            static_cast<uint16_t>(agent.getLocation().y), static_cast<uint8_t>(agent.getType()),
-                            static_cast<uint8_t>(agent.getAge())};
+        if (extendedLog)
+        {
+            AgentLogEntry entry{
+                static_cast<uint32_t>(agent.getId()),         static_cast<float>(agent.getBiomass()),
+                static_cast<uint16_t>(currentStep),           static_cast<uint16_t>(agent.getLocation().x),
+                static_cast<uint16_t>(agent.getLocation().y), static_cast<uint8_t>(agent.getType()),
+                static_cast<uint8_t>(agent.getAge())};
+            outFileAgents.write(reinterpret_cast<char *>(&entry), sizeof(AgentLogEntry));
+            ++linesLogged;
+        }
+        else
+        {
+            AgentLogEntrySmall entry{static_cast<uint16_t>(currentStep), static_cast<uint16_t>(agent.getLocation().x),
+                                     static_cast<uint16_t>(agent.getLocation().y),
+                                     static_cast<uint8_t>(agent.getType())};
 
-        outFileAgents.write(reinterpret_cast<char *>(&entry), sizeof(AgentLogEntry));
-        ++linesLogged;
+            outFileAgents.write(reinterpret_cast<char *>(&entry), sizeof(AgentLogEntrySmall));
+            ++linesLogged;
+        }
     }
 }
 

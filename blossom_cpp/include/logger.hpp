@@ -20,6 +20,16 @@ struct AgentLogEntry
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+struct AgentLogEntrySmall
+{
+    uint16_t tick;
+    uint16_t x;
+    uint16_t y;
+    uint8_t type;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 struct SOMLogEntry
 {
     float som_value;
@@ -32,7 +42,7 @@ struct SOMLogEntry
 class Logger
 {
   public:
-    Logger(std::string outputDir, std::string outputFileName, int gridWidth, int gridHeight, const bool logging);
+    Logger(std::string outputDir, std::string outputFileName, int gridWidth, int gridHeight, const bool logging, const bool extLog);
     ~Logger();
     void log(int currentStep, const std::unordered_map<int, OrganismGroup> &agents,
              const std::vector<std::vector<double>> &somGrid);
@@ -55,6 +65,7 @@ class Logger
     int gridWidth;
     int gridHeight;
     bool shouldLog;
+    bool extendedLog;
 
     void logAgents(int currentStep, const std::unordered_map<int, OrganismGroup> &agents);
     void logSOM(int currentStep, const std::vector<std::vector<double>> &somGrid);

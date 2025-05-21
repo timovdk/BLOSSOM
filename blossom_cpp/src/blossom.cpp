@@ -9,10 +9,11 @@
 #include <sstream>
 #include <unordered_set>
 
-BLOSSOM::BLOSSOM(const int index, const std::string config_file_name, const bool logging)
+BLOSSOM::BLOSSOM(const int index, const std::string config_file_name, const bool logging, const bool extLog)
 {
     trialID = index;
     shouldLog = logging;
+    extendedLog = extLog;
     // Load configuration
     loadConfig(config_file_name);
 
@@ -119,7 +120,7 @@ void BLOSSOM::init()
     // Then, populate the agent grid
     populate();
     // Finally, initialize logger and log the initial state
-    logger = std::make_unique<Logger>(outputDir, outputFileName, gridWidth, gridHeight, shouldLog);
+    logger = std::make_unique<Logger>(outputDir, outputFileName, gridWidth, gridHeight, shouldLog, extendedLog);
     logger->log(currentStep, agents, somGrid);
 }
 

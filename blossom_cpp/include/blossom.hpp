@@ -23,6 +23,7 @@ class BLOSSOM
     int currentStep = 0;
     int trialID = 0;
     bool shouldLog = true;
+    bool extendedLog = false;
     unsigned long long organismId = 0;
     std::string outputDir, outputFileName;
 
@@ -78,6 +79,6 @@ class BLOSSOM
                          const std::vector<OrganismData> &organismData) const;
 
   public:
-    BLOSSOM(const int index, const std::string config_file_name, const bool logging);
+    BLOSSOM(const int index, const std::string config_file_name, const bool logging, const bool extLog);
     void run();
 };
