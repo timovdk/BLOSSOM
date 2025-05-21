@@ -21,7 +21,7 @@ make
 
 # Run BLOSSOM
 echo "Running BLOSSOM..."
-python ./hpc/run_blossom.py --n_trials 10 --n_jobs 10 --seed 135432
+python ./hpc/run_blossom.py --n_trials 23 --n_jobs 23 --seed 135432
 
 # Should copy to deepstore (maybe with rsync/rclone?)
 # Make dir (if not exists) and copy input configs
