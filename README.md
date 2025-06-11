@@ -1,5 +1,5 @@
 # BLOSSOM - BioLOgical Simulation in SOil Model
-[![DOI](https://zenodo.org/badge/711296558.svg)](https://doi.org/10.5281/zenodo.15644093)
+[![DOI](https://zenodo.org/badge/711296558.svg)](https://doi.org/10.5281/zenodo.15644213)
 
 A soil biota agent based model (ABM) to simulate organisms in a 2d space.
 
@@ -31,6 +31,3 @@ Prerequisites:
 
 1. Run `make` in `./blossom` (make sure to set `const int num_trials` first, since this will be compiled into the executable! So everytime you change this value, first run make again, then blossom)
 2. Run `./bin/blossom` and BLOSSOM will start to run the simulations!
-
-## Example
-![alt text](example.gif)
