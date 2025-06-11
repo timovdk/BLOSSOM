@@ -89,18 +89,18 @@ def objective(
         k_base = base_params[f"organism_{i}_k"]
 
         biomass_max = trial.suggest_float(
-            f"organism_{i}_biomass_max", biomass_max_base * 0.9, biomass_max_base * 1.1
+            f"organism_{i}_biomass_max", biomass_max_base * 0.75, biomass_max_base * 1.25
         )
         age_max = trial.suggest_int(
             f"organism_{i}_age_max",
-            math.floor(age_max_base * 0.9),
-            math.ceil(age_max_base * 1.1),
+            math.floor(age_max_base * 0.75),
+            math.ceil(age_max_base * 1.25),
         )
 
         biomass_reproduction = trial.suggest_float(
             f"organism_{i}_biomass_reproduction",
-            biomass_repr_base * 0.9,
-            biomass_repr_base * 1.1,
+            biomass_repr_base * 0.75,
+            biomass_repr_base * 1.25,
         )
 
         if biomass_reproduction > biomass_max:
@@ -108,14 +108,14 @@ def objective(
 
         age_reproduction = trial.suggest_int(
             f"organism_{i}_age_reproduction",
-            math.floor(age_repr_base * 0.9),
-            math.ceil(age_repr_base * 1.1),
+            math.floor(age_repr_base * 0.75),
+            math.ceil(age_repr_base * 1.25),
         )
 
         if age_reproduction > age_max:
             return 0
 
-        k = trial.suggest_float(f"organism_{i}_k", k_base * 0.9, k_base * 1.1)
+        k = trial.suggest_float(f"organism_{i}_k", k_base * 0.75, k_base * 1.25)
 
         params[f"organism_{i}_biomass_max"] = round(biomass_max, 8)
         params[f"organism_{i}_biomass_reproduction"] = round(biomass_reproduction, 8)
@@ -125,14 +125,23 @@ def objective(
 
     logs = evaluate(params, num_trials=num_trials, seed=seed)
 
+    # We use area under the curve (AUC) as the objective.
+    # The maximum number of ticks is 1000, and we log every 50 ticks.
+    # Therefore, we have at most 21 logs (0, 50, 100, ..., 1000).
+    # Each log can have at most 9 organisms surviving.
+    # The maximum number of survivors across all logs is 21 * 9 = 189.
+    # We normalize the total survivors by dividing it by the maximum possible value.
+    # This ensures that the objective value is in the range [0, 1].
+    total_survivors = 0
     for log in logs:
         tick = log["tick"]
         survivors = log["survivors"]
         trial.report(survivors, step=tick)
+        total_survivors += log["survivors"]
 
-    final_log = logs[-1] if logs else {"tick": 0, "survivors": 0}
-
-    return (final_log["tick"] / 1000) * (final_log["survivors"] / 9)
+    maximum_survivors = 21 * 9  
+    
+    return total_survivors / maximum_survivors  # Returns value in [0, 1]
 
 
 parser = argparse.ArgumentParser()
@@ -159,7 +168,7 @@ study = optuna.create_study(
     load_if_exists=True,
 )
 
-base_params = load_base_config("optimized_config.props")
+base_params = load_base_config("base_config.props")
 
 study.optimize(
     lambda trial: objective(

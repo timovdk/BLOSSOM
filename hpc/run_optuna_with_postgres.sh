@@ -63,6 +63,6 @@ done ) &
 
 # Run Optuna script
 echo "Running Optuna optimization..."
-python ./hpc/run_optuna.py --n_trials 3000 --n_jobs 47
+python ./hpc/run_optuna.py --n_trials 5000 --n_jobs 47
 
 cleanup
