@@ -1,4 +1,6 @@
 # BLOSSOM - BioLOgical Simulation in SOil Model
+[![DOI](https://zenodo.org/badge/711296558.svg)](https://doi.org/10.5281/zenodo.15644093)
+
 A soil biota agent based model (ABM) to simulate organisms in a 2d space.
 
 ## Instructions
