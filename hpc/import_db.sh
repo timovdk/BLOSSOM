@@ -1,5 +1,5 @@
 #!/bin/bash
-scp tvanderkuil@snellius.surf.nl:./BLOSSOM/blossom/hpc/study.sql ~/Documents/
+scp tvanderkuil@snellius.surf.nl:./BLOSSOM/hpc/study.sql ~/Documents/
 
 psql -U $(whoami) -d postgres -c "DROP DATABASE IF EXISTS optuna_study;"
 psql -U $(whoami) -d postgres -c "CREATE DATABASE optuna_study;"

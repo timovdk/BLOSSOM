@@ -50,6 +50,7 @@ else
 fi
 
 cp -r $HOME/BLOSSOM/blossom "$TMPDIR"
+cp -r $HOME/BLOSSOM/hpc "$TMPDIR/blossom"
 
 cd $TMPDIR/blossom
 make clean
