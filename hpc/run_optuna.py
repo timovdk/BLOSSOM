@@ -160,8 +160,11 @@ tpe_sampler = optuna.samplers.TPESampler(
     seed=42,
 )
 
+cma_sampler = optuna.samplers.CmaEsSampler(population_size=64, restart_strategy="ipop", seed=42)
+
 study = optuna.create_study(
-    sampler=tpe_sampler,
+    #sampler=tpe_sampler,
+    sampler=cma_sampler,
     direction="maximize",
     study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] 9 Organisms, Regular Objective",
     storage=storage_url,
