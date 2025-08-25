@@ -160,7 +160,7 @@ tpe_sampler = optuna.samplers.TPESampler(
     seed=42,
 )
 
-cma_sampler = optuna.samplers.CmaEsSampler(population_size=64, restart_strategy="ipop", seed=42)
+cma_sampler = optuna.samplers.CmaEsSampler(n_startup_trials=200, popsize=64, restart_strategy="ipop", seed=42)
 
 study = optuna.create_study(
     #sampler=tpe_sampler,
