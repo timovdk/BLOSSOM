@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 
 import optuna
+import numpy as np
 
 
 def load_base_config(filename):
@@ -142,16 +143,18 @@ def objective(
     # The maximum number of survivors across all logs is 21 * 9 = 189.
     # We normalize the total survivors by dividing it by the maximum possible value.
     # This ensures that the objective value is in the range [0, 1].
-    total_survivors = 0
-    for log in logs:
-        tick = log["tick"]
-        survivors = log["survivors"]
-        trial.report(survivors, step=tick)
-        total_survivors += log["survivors"]
+    survival = [log["survivors"] for log in logs]
 
-    maximum_survivors = 21 * 9  
-    
-    return total_survivors / maximum_survivors  # Returns value in [0, 1]
+    # Objective 1: average survival (diversity)
+    diversity = sum(survival) / (len(survival) * 9)
+
+    # Objective 2: stability
+    if len(survival) > 1:
+        stability = 1 - np.std(survival) / 9  # normalize to [0,1]
+    else:
+        stability = 1.0
+
+    return diversity, stability
 
 
 parser = argparse.ArgumentParser()
@@ -172,9 +175,12 @@ tpe_sampler = optuna.samplers.TPESampler(
 
 cma_sampler = optuna.samplers.CmaEsSampler(n_startup_trials=200, popsize=64, restart_strategy="ipop", seed=42)
 
+nsgaii_sampler = optuna.samplers.NSGAIISampler(population_size=144, seed=42)
+
 study = optuna.create_study(
     #sampler=tpe_sampler,
-    sampler=cma_sampler,
+    #sampler=cma_sampler,
+    sampler=nsgaii_sampler,
     direction="maximize",
     study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] 9 Organisms, Regular Objective",
     storage=storage_url,
