@@ -35,8 +35,11 @@ def load_base_config(filename):
     return base_params
 
 
-def evaluate(params, num_trials, seed):
+def evaluate(params, num_trials, seed, impossible_trial):
     logs = []
+    if impossible_trial:
+        return logs
+    
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmpfile:
         for key, value in params.items():
             tmpfile.write(f"{key}={value}\n")
@@ -80,6 +83,7 @@ def objective(
     trial: optuna.trial.FrozenTrial, base_params, orgs, num_trials=1, seed=42
 ):
     params = base_params.copy()
+    impossible_trial = False
 
     for i in orgs:
         biomass_max_base = base_params[f"organism_{i}_biomass_max"]
@@ -104,7 +108,7 @@ def objective(
         )
 
         if biomass_reproduction > biomass_max:
-            return 0
+            impossible_trial = True
 
         age_reproduction = trial.suggest_int(
             f"organism_{i}_age_reproduction",
@@ -113,7 +117,7 @@ def objective(
         )
 
         if age_reproduction > age_max:
-            return 0
+            impossible_trial = True
 
         k = trial.suggest_float(f"organism_{i}_k", k_base * 0.75, k_base * 1.25)
 
@@ -123,7 +127,13 @@ def objective(
         params[f"organism_{i}_age_reproduction"] = age_reproduction
         params[f"organism_{i}_k"] = k
 
-    logs = evaluate(params, num_trials=num_trials, seed=seed)
+    logs = evaluate(params, num_trials=num_trials, seed=seed, impossible_trial=impossible_trial)
+
+    # For impossible trials or simulations that produced no logs, return a tiny non-zero value.
+    # This penalizes invalid configurations while keeping the search space fully visible to 
+    # some samplers (e.g., CMA-ES), helping the sampler explore more effectively.
+    if impossible_trial or len(logs) == 0:
+        return 1e-6
 
     # We use area under the curve (AUC) as the objective.
     # The maximum number of ticks is 1000, and we log every 50 ticks.
