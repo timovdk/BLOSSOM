@@ -134,7 +134,7 @@ def objective(
     # This penalizes invalid configurations while keeping the search space fully visible to 
     # some samplers (e.g., CMA-ES), helping the sampler explore more effectively.
     if impossible_trial or len(logs) == 0:
-        return 1e-6
+        return 1e-6, 1e-6
 
     # We use area under the curve (AUC) as the objective.
     # The maximum number of ticks is 1000, and we log every 50 ticks.
