@@ -181,8 +181,8 @@ study = optuna.create_study(
     #sampler=tpe_sampler,
     #sampler=cma_sampler,
     sampler=nsgaii_sampler,
-    direction="maximize",
-    study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] 9 Organisms, Regular Objective",
+    directions=["maximize", "maximize"],
+    study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] 9 Organisms, Double Objective",
     storage=storage_url,
     load_if_exists=True,
 )
