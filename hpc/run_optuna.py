@@ -143,18 +143,24 @@ def objective(
     # The maximum number of survivors across all logs is 21 * 9 = 189.
     # We normalize the total survivors by dividing it by the maximum possible value.
     # This ensures that the objective value is in the range [0, 1].
-    survival = [log["survivors"] for log in logs]
+    survival = []
+    for log in logs:
+        tick = log["tick"]
+        survivors = log["survivors"]
+        trial.report(survivors, step=tick)
+        survival.append(survivors)
 
-    # Objective 1: average survival (diversity)
-    diversity = sum(survival) / (len(survival) * 9)
+    maximum_survivors = 21 * 9
+    auc = sum(survival) / maximum_survivors
 
     # Objective 2: stability
     if len(survival) > 1:
-        stability = 1 - np.std(survival) / 9  # normalize to [0,1]
+        stability_raw = 1 - (np.std(survival) / 9)  # normalize to [0,1]
     else:
-        stability = 1.0
+        stability_raw = 1e-6
+    stability = max(1e-6, (stability_raw * len(survival) / 21))  # penalize short-lived simulations
 
-    return diversity, stability
+    return auc, stability
 
 
 parser = argparse.ArgumentParser()
