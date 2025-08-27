@@ -143,18 +143,13 @@ def objective(
     # The maximum number of survivors across all logs is 21 * 9 = 189.
     # We normalize the total survivors by dividing it by the maximum possible value.
     # This ensures that the objective value is in the range [0, 1].
-    survival = []
+    survival = [log["survivors"] for log in logs]
     maximum_survivors = 21 * 9
-    for log in logs:
-        tick = log["tick"]
-        survivors = log["survivors"]
-        trial.report(survivors, step=tick)
-        survival.append(survivors)
 
-    # Objective 1: AUC
+    # Objective 1: AUC (trajectory diversity)
     auc = sum(survival) / maximum_survivors
 
-    # Objective 2: final outcome
+    # Objective 2: final outcome (long-term survival)
     final_log = logs[-1]
 
     final_outcome = (final_log["tick"] / 1000) * (final_log["survivors"] / 9)
