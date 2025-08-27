@@ -135,23 +135,16 @@ def objective(
     if impossible_trial or len(logs) == 0:
         return 1e-6
 
-    # We use area under the curve (AUC) as the objective.
-    # The maximum number of ticks is 1000, and we log every 50 ticks.
-    # Therefore, we have at most 21 logs (0, 50, 100, ..., 1000).
-    # Each log can have at most 9 organisms surviving.
-    # The maximum number of survivors across all logs is 21 * 9 = 189.
-    # We normalize the total survivors by dividing it by the maximum possible value.
-    # This ensures that the objective value is in the range [0, 1].
-    total_survivors = 0
     for log in logs:
         tick = log["tick"]
         survivors = log["survivors"]
         trial.report(survivors, step=tick)
-        total_survivors += log["survivors"]
 
-    maximum_survivors = 21 * 9  
+    # Objective: final_outcome (long-term survival)
+    final_log = logs[-1]
+    final_outcome = (final_log["tick"] / 1000) * (final_log["survivors"] / 9)
     
-    return total_survivors / maximum_survivors  # Returns value in [0, 1]
+    return final_outcome
 
 
 parser = argparse.ArgumentParser()
