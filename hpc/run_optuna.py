@@ -144,23 +144,22 @@ def objective(
     # We normalize the total survivors by dividing it by the maximum possible value.
     # This ensures that the objective value is in the range [0, 1].
     survival = []
+    maximum_survivors = 21 * 9
     for log in logs:
         tick = log["tick"]
         survivors = log["survivors"]
         trial.report(survivors, step=tick)
         survival.append(survivors)
 
-    maximum_survivors = 21 * 9
+    # Objective 1: AUC
     auc = sum(survival) / maximum_survivors
 
-    # Objective 2: stability
-    if len(survival) > 1:
-        stability_raw = 1 - (np.std(survival) / 9)  # normalize to [0,1]
-    else:
-        stability_raw = 1e-6
-    stability = max(1e-6, (stability_raw * len(survival) / 21))  # penalize short-lived simulations
+    # Objective 2: final outcome
+    final_log = logs[-1]
 
-    return auc, stability
+    final_outcome = (final_log["tick"] / 1000) * (final_log["survivors"] / 9)
+
+    return auc, final_outcome
 
 
 parser = argparse.ArgumentParser()
