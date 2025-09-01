@@ -1,0 +1,125 @@
+output_dir=./outputs/
+output_file_name=random
+deviation=0.2
+default_seed=4677
+# 0 == random, 1 == clustered
+initial_distribution_type=0
+initial_distribution_seed=7959
+# 0 == random, 1 == uniform
+nutrient_type=0
+nutrient_seed=3464
+nutrient_mean=0.0075
+max_steps=1000
+grid_width=400
+grid_height=400
+early_stop_interval=10
+early_stop_min_types=5
+
+# Organism parameters:
+# Bacteria, 0
+organism_0_count=40000
+organism_0_range_dispersal=1
+organism_0_age_reproduction=0
+organism_0_age_max=1
+organism_0_biomass_max=0.000891
+organism_0_biomass_reproduction=0.000464
+organism_0_k=0.032337
+organism_0_som_feeder=1
+organism_0_preys=
+organism_0_predators=3,5
+
+# Fungi, 1
+organism_1_count=15000
+organism_1_range_dispersal=0
+organism_1_age_reproduction=3
+organism_1_age_max=7
+organism_1_biomass_max=0.000789
+organism_1_biomass_reproduction=0.000620
+organism_1_k=0.058157
+organism_1_som_feeder=1
+organism_1_preys=
+organism_1_predators=4,6,8
+
+# Root-feeding nematodes, 2
+organism_2_count=5500
+organism_2_range_dispersal=3
+organism_2_age_reproduction=9
+organism_2_age_max=13
+organism_2_biomass_max=0.000963
+organism_2_biomass_reproduction=0.000620
+organism_2_k=0.179451
+organism_2_som_feeder=1
+organism_2_preys=
+organism_2_predators=5,7
+
+# Bacterivorous nematodes, 3
+organism_3_count=7500
+organism_3_range_dispersal=4
+organism_3_age_reproduction=14
+organism_3_age_max=19
+organism_3_biomass_max=0.001101
+organism_3_biomass_reproduction=0.000559
+organism_3_k=0.003048
+organism_3_som_feeder=0
+organism_3_preys=0
+organism_3_predators=5,7
+
+# Fungivorous nematodes, 4
+organism_4_count=5500
+organism_4_range_dispersal=3
+organism_4_age_reproduction=18
+organism_4_age_max=20
+organism_4_biomass_max=0.001084
+organism_4_biomass_reproduction=0.000558
+organism_4_k=0.001771
+organism_4_som_feeder=0
+organism_4_preys=1
+organism_4_predators=5,7
+
+# Omnivorous nematodes, 5
+organism_5_count=4000
+organism_5_range_dispersal=4
+organism_5_age_reproduction=12
+organism_5_age_max=21
+organism_5_biomass_max=0.001090
+organism_5_biomass_reproduction=0.000489
+organism_5_k=0.009243
+organism_5_som_feeder=0
+organism_5_preys=0,2,3,4
+organism_5_predators=7
+
+# Fungivorous mites, 6
+organism_6_count=1000
+organism_6_range_dispersal=5
+organism_6_age_reproduction=39
+organism_6_age_max=59
+organism_6_biomass_max=0.001213
+organism_6_biomass_reproduction=0.000456
+organism_6_k=0.047719
+organism_6_som_feeder=0
+organism_6_preys=1
+organism_6_predators=7
+
+# Omnivorous mites, 7
+organism_7_count=500
+organism_7_range_dispersal=6
+organism_7_age_reproduction=43
+organism_7_age_max=67
+organism_7_biomass_max=0.001275
+organism_7_biomass_reproduction=0.000601
+organism_7_k=0.023445
+organism_7_som_feeder=0
+organism_7_preys=2,3,4,5,6,8
+organism_7_predators=
+
+# Collembolans, 8
+organism_8_count=1000
+organism_8_range_dispersal=6
+organism_8_age_reproduction=17
+organism_8_age_max=22
+organism_8_biomass_max=0.000911
+organism_8_biomass_reproduction=0.000410
+organism_8_k=0.018894
+organism_8_som_feeder=0
+organism_8_preys=1
+organism_8_predators=7
