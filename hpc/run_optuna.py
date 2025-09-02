@@ -10,6 +10,7 @@ import optuna
 import numpy as np
 
 SEEDS = [546910, 314159, 273188, 987525, 417103]
+METRIC = "auc" # "auc" or "final_outcome"
 
 
 def load_base_config(filename):
@@ -80,7 +81,7 @@ def evaluate(params, num_trials, seed):
 
 
 def objective(
-    trial: optuna.trial.FrozenTrial, base_params, orgs, num_trials=1, seed=42
+    trial: optuna.trial.FrozenTrial, base_params, orgs, num_trials=1, seed=42, metric="auc"
 ):
     params = base_params.copy()
     impossible_trial = False
@@ -93,7 +94,9 @@ def objective(
         k_base = base_params[f"organism_{i}_k"]
 
         biomass_max = trial.suggest_float(
-            f"organism_{i}_biomass_max", biomass_max_base * 0.75, biomass_max_base * 1.25
+            f"organism_{i}_biomass_max",
+            biomass_max_base * 0.75,
+            biomass_max_base * 1.25,
         )
 
         age_max = trial.suggest_int(
@@ -129,31 +132,30 @@ def objective(
     if impossible_trial:
         return 1e-6, 1e-6
 
-    aucs = []
-    final_outcomes = []
+    metric_values = []
     for sim_seed in SEEDS:
         logs = evaluate(params, num_trials=num_trials, seed=sim_seed)
         if len(logs) == 0:
             continue
+        
+        if metric == "auc":
+            survival = [log["survivors"] for log in logs]
+            maximum_survivors = 21 * 9
 
-        survival = [log["survivors"] for log in logs]
-        maximum_survivors = 21 * 9
+            # Objective 1: AUC (trajectory diversity)
+            metric_values.append((sum(survival) / maximum_survivors))
+        
+        elif metric == "final_outcome":
+            # Objective 2: final outcome (long-term survival)
+            final_log = logs[-1]
+            metric_values.append((final_log["tick"] / 1000) * (final_log["survivors"] / 9))
 
-        # Objective 1: AUC (trajectory diversity)
-        aucs.append((sum(survival) / maximum_survivors))
-
-        # Objective 2: final outcome (long-term survival)
-        final_log = logs[-1]
-
-        final_outcomes.append((final_log["tick"] / 1000) * (final_log["survivors"] / 9))
-
-    if len(aucs) == 0:
+    if len(metric_values) == 0:
         return 1e-6, 1e-6
 
-    trial.set_user_attr("std_auc", np.std(aucs))
-    trial.set_user_attr("std_final_outcome", np.std(final_outcomes))
+    trial.set_user_attr("std_metric", np.std(metric_values))
 
-    return np.mean(aucs), np.mean(final_outcomes)
+    return np.mean(metric_values)
 
 
 parser = argparse.ArgumentParser()
@@ -163,26 +165,26 @@ args = parser.parse_args()
 
 storage_url = "postgresql://localhost:5433/optuna_study"
 
-#tpe_sampler = optuna.samplers.TPESampler(
+# tpe_sampler = optuna.samplers.TPESampler(
 #    n_startup_trials=300,
 #    n_ei_candidates=64,
 #    consider_magic_clip=True,
 #    consider_endpoints=True,
 #    constant_liar=True,
-#)
+# )
 #
-#cma_sampler = optuna.samplers.CmaEsSampler(
-#    n_startup_trials=200, popsize=64, restart_strategy="ipop"
-#)
+cma_sampler = optuna.samplers.CmaEsSampler(
+    n_startup_trials=200, popsize=64, restart_strategy="ipop"
+)
 
-nsgaii_sampler = optuna.samplers.NSGAIISampler(population_size=144)
+# nsgaii_sampler = optuna.samplers.NSGAIISampler(population_size=144)
 
 study = optuna.create_study(
     # sampler=tpe_sampler,
-    # sampler=cma_sampler,
-    sampler=nsgaii_sampler,
-    directions=["maximize", "maximize"],
-    study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] 9 Organisms, Double Objective",
+    sampler=cma_sampler,
+    # sampler=nsgaii_sampler,
+    direction="maximize",
+    study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] 9 Organisms",
     storage=storage_url,
     load_if_exists=True,
 )
@@ -191,7 +193,7 @@ base_params = load_base_config("base_config.props")
 
 study.optimize(
     lambda trial: objective(
-        trial, base_params, orgs=[0, 1, 2, 3, 4, 5, 6, 7, 8], num_trials=1
+        trial, base_params, orgs=[0, 1, 2, 3, 4, 5, 6, 7, 8], num_trials=1, metric=METRIC
     ),
     n_trials=args.n_trials,
     n_jobs=args.n_jobs,
