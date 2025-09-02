@@ -9,7 +9,7 @@ import tempfile
 import optuna
 import numpy as np
 
-SEEDS = [42, 314159, 2718]
+SEEDS = [546910, 314159, 273188, 987525, 417103]
 
 
 def load_base_config(filename):
@@ -93,77 +93,28 @@ def objective(
         k_base = base_params[f"organism_{i}_k"]
 
         biomass_max = trial.suggest_float(
-            f"organism_{i}_biomass_max", biomass_max_base * 0.9, biomass_max_base * 1.1
+            f"organism_{i}_biomass_max", biomass_max_base * 0.75, biomass_max_base * 1.25
         )
-        if i == 1:
-            age_max = trial.suggest_int(f"organism_{i}_age_max", 7, 10)
-        elif i == 3:
-            age_max = trial.suggest_int(f"organism_{i}_age_max", 16, 23)
-        elif i == 4:
-            age_max = trial.suggest_int(f"organism_{i}_age_max", 18, 25)
-        elif i == 5:
-            age_max = trial.suggest_int(f"organism_{i}_age_max", 16, 22)
-        elif i == 6:
-            age_max = trial.suggest_int(f"organism_{i}_age_max", 44, 60)
-        elif i == 7:
-            age_max = trial.suggest_int(f"organism_{i}_age_max", 58, 75)
-        elif i == 8:
-            age_max = trial.suggest_int(f"organism_{i}_age_max", 15, 25)
-        else:
-            age_max = trial.suggest_int(
-                f"organism_{i}_age_max",
-                math.floor(age_max_base * 0.9),
-                math.ceil(age_max_base * 1.1),
-            )
+
+        age_max = trial.suggest_int(
+            f"organism_{i}_age_max",
+            math.floor(age_max_base * 0.75),
+            math.ceil(age_max_base * 1.25),
+        )
 
         biomass_reproduction = trial.suggest_float(
             f"organism_{i}_biomass_reproduction",
-            biomass_repr_base * 0.9,
-            biomass_repr_base * 1.1,
+            biomass_repr_base * 0.75,
+            biomass_repr_base * 1.25,
         )
 
-        if biomass_reproduction > biomass_max:
-            impossible_trial = True
+        age_reproduction = trial.suggest_int(
+            f"organism_{i}_age_reproduction",
+            math.floor(age_repr_base * 0.75),
+            math.ceil(age_repr_base * 1.25),
+        )
 
-        if i == 2:
-            age_reproduction = trial.suggest_int(
-                f"organism_{i}_age_reproduction", 7, 12
-            )
-        elif i == 3:
-            age_reproduction = trial.suggest_int(
-                f"organism_{i}_age_reproduction", 12, 18
-            )
-        elif i == 4:
-            age_reproduction = trial.suggest_int(
-                f"organism_{i}_age_reproduction", 15, 19
-            )
-        elif i == 5:
-            age_reproduction = trial.suggest_int(
-                f"organism_{i}_age_reproduction", 10, 16
-            )
-        elif i == 6:
-            age_reproduction = trial.suggest_int(
-                f"organism_{i}_age_reproduction", 28, 43
-            )
-        elif i == 7:
-            age_reproduction = trial.suggest_int(
-                f"organism_{i}_age_reproduction", 26, 44
-            )
-        elif i == 8:
-            age_reproduction = trial.suggest_int(
-                f"organism_{i}_age_reproduction", 11, 19
-            )
-        else:
-            age_reproduction = trial.suggest_int(
-                f"organism_{i}_age_reproduction",
-                math.floor(age_repr_base * 0.9),
-                math.ceil(age_repr_base * 1.1),
-            )
-
-        if age_reproduction > age_max:
-            impossible_trial = True
-
-        k = trial.suggest_float(f"organism_{i}_k", k_base * 0.9, k_base * 1.1)
+        k = trial.suggest_float(f"organism_{i}_k", k_base * 0.75, k_base * 1.25)
 
         params[f"organism_{i}_biomass_max"] = round(biomass_max, 8)
         params[f"organism_{i}_biomass_reproduction"] = round(biomass_reproduction, 8)
@@ -171,9 +122,10 @@ def objective(
         params[f"organism_{i}_age_reproduction"] = age_reproduction
         params[f"organism_{i}_k"] = k
 
+        if (age_reproduction > age_max) or (biomass_reproduction > biomass_max):
+            impossible_trial = True
+
     # For impossible trials, return a tiny non-zero value.
-    # This penalizes invalid configurations while keeping the search space fully visible to
-    # some samplers (e.g., CMA-ES), helping the sampler explore more effectively.
     if impossible_trial:
         return 1e-6, 1e-6
 
@@ -184,13 +136,6 @@ def objective(
         if len(logs) == 0:
             continue
 
-        # We use area under the curve (AUC) as the objective.
-        # The maximum number of ticks is 1000, and we log every 50 ticks.
-        # Therefore, we have at most 21 logs (0, 50, 100, ..., 1000).
-        # Each log can have at most 9 organisms surviving.
-        # The maximum number of survivors across all logs is 21 * 9 = 189.
-        # We normalize the total survivors by dividing it by the maximum possible value.
-        # This ensures that the objective value is in the range [0, 1].
         survival = [log["survivors"] for log in logs]
         maximum_survivors = 21 * 9
 
@@ -201,7 +146,7 @@ def objective(
         final_log = logs[-1]
 
         final_outcomes.append((final_log["tick"] / 1000) * (final_log["survivors"] / 9))
-    
+
     if len(aucs) == 0:
         return 1e-6, 1e-6
 
@@ -218,17 +163,17 @@ args = parser.parse_args()
 
 storage_url = "postgresql://localhost:5433/optuna_study"
 
-tpe_sampler = optuna.samplers.TPESampler(
-    n_startup_trials=300,
-    n_ei_candidates=64,
-    consider_magic_clip=True,
-    consider_endpoints=True,
-    constant_liar=True,
-)
-
-cma_sampler = optuna.samplers.CmaEsSampler(
-    n_startup_trials=200, popsize=64, restart_strategy="ipop"
-)
+#tpe_sampler = optuna.samplers.TPESampler(
+#    n_startup_trials=300,
+#    n_ei_candidates=64,
+#    consider_magic_clip=True,
+#    consider_endpoints=True,
+#    constant_liar=True,
+#)
+#
+#cma_sampler = optuna.samplers.CmaEsSampler(
+#    n_startup_trials=200, popsize=64, restart_strategy="ipop"
+#)
 
 nsgaii_sampler = optuna.samplers.NSGAIISampler(population_size=144)
 
@@ -242,7 +187,7 @@ study = optuna.create_study(
     load_if_exists=True,
 )
 
-base_params = load_base_config("nsgaii_config.props")
+base_params = load_base_config("base_config.props")
 
 study.optimize(
     lambda trial: objective(

@@ -1,6 +1,6 @@
 output_dir=./outputs/
 output_file_name=random
-deviation=0.00001
+deviation=0.1
 default_seed=4677
 # 0 == random, 1 == clustered
 initial_distribution_type=0
