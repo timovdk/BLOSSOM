@@ -130,7 +130,7 @@ def objective(
 
     # For impossible trials, return a tiny non-zero value.
     if impossible_trial:
-        return 1e-6, 1e-6
+        return 1e-6
 
     metric_values = []
     for sim_seed in SEEDS:
@@ -151,7 +151,7 @@ def objective(
             metric_values.append((final_log["tick"] / 1000) * (final_log["survivors"] / 9))
 
     if len(metric_values) == 0:
-        return 1e-6, 1e-6
+        return 1e-6
 
     trial.set_user_attr("std_metric", np.std(metric_values))
 
