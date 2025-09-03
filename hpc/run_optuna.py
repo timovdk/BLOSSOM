@@ -10,7 +10,7 @@ import optuna
 import numpy as np
 
 SEEDS = [546910, 314159, 273188, 987525, 417103]
-METRIC = "auc" # "auc" or "final_outcome"
+METRIC = "final_outcome" # "auc" or "final_outcome"
 
 
 def load_base_config(filename):
