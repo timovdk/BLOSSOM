@@ -9,7 +9,7 @@ import tempfile
 import optuna
 import numpy as np
 
-SEEDS = [546910, 314159, 273188, 987525, 417103]
+SEEDS = [546910]#, 314159, 273188, 987525, 417103]
 METRIC = "final_outcome" # "auc" or "final_outcome"
 
 
