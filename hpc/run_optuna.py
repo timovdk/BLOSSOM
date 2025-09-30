@@ -168,9 +168,6 @@ storage_url = "postgresql://localhost:5433/optuna_study"
 tpe_sampler = optuna.samplers.TPESampler(
    n_startup_trials=300,
    n_ei_candidates=64,
-   consider_magic_clip=True,
-   consider_endpoints=True,
-   constant_liar=True,
 )
 
 study = optuna.create_study(
