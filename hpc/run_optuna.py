@@ -9,7 +9,7 @@ import tempfile
 import optuna
 import numpy as np
 
-SEEDS = [546910]#, 314159, 273188, 987525, 417103]
+SEEDS = [42]
 METRIC = "final_outcome" # "auc" or "final_outcome"
 
 
@@ -137,6 +137,10 @@ def objective(
         logs = evaluate(params, num_trials=num_trials, seed=sim_seed)
         if len(logs) == 0:
             continue
+
+        if len(SEEDS) == 1:
+            for log in logs:
+                trial.report(log["survivors"], step=log["tick"])
         
         if metric == "auc":
             survival = [log["survivors"] for log in logs]
