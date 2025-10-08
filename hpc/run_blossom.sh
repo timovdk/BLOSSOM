@@ -6,8 +6,7 @@
 #SBATCH --time=48:00:00
 
 # Load modules (modify these as needed)
-module load 2024
-module load Python/3.12.3-GCCcore-13.3.0
+module load 2025 Python/3.13.1-GCCcore-14.2.0
 
 source $HOME/venvs/blossom/bin/activate
 # OR install dependencies manually

@@ -1,6 +1,5 @@
 #!/bin/bash
-module load 2024
-module load PostgreSQL/16.4-GCCcore-13.3.0
+module load 2025 PostgreSQL/17.5-GCCcore-14.2.0
 
 pg_ctl -D $HOME/pgsql/data -l $HOME/pgsql/postgres.log start
 
