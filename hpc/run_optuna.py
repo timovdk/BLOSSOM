@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import tempfile
+import sys
 
 import optuna
 import numpy as np
@@ -165,6 +166,7 @@ def objective(
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_trials", type=int, default=20)
 parser.add_argument("--n_jobs", type=int, default=2)
+parser.add_argument("--init-db", action='store_true', default=False)
 args = parser.parse_args()
 
 storage_url = "postgresql://localhost:5433/optuna_study"
@@ -174,10 +176,20 @@ tpe_sampler = optuna.samplers.TPESampler(
    n_ei_candidates=64,
 )
 
+if args.init_db:
+    optuna.create_study(sampler=tpe_sampler,
+                        direction="maximize",
+                        study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H')}] 9 Organisms", 
+                        storage=storage_url, 
+                        load_if_exists=True,
+                        )
+    print("Database initialized, exiting.")
+    sys.exit(0)
+
 study = optuna.create_study(
     sampler=tpe_sampler,
     direction="maximize",
-    study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H-%M')}] 9 Organisms",
+    study_name=f"[{datetime.datetime.now().strftime('%b-%d-%H')}] 9 Organisms",
     storage=storage_url,
     load_if_exists=True,
 )

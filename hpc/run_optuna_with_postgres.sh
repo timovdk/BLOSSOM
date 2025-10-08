@@ -59,6 +59,9 @@ make
     pg_isready -p $PGPORT
 done ) &
 
+echo "Creating DB..."
+srun -n 1 python ./hpc/run_optuna.py --init-db
+
 # Run Optuna script
 echo "Running Optuna optimization..."
 
