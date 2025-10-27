@@ -188,10 +188,9 @@ args = parser.parse_args()
 storage_url = "postgresql://localhost:5433/optuna_study"
 
 cma_sampler = optuna.samplers.CmaEsSampler(
-    x0=None,                  # Initial guess; None = Optuna will sample randomly
-    sigma0=0.3,               # Initial step size (good for [0,1] normalized parameters)
-    n_startup_trials=300,     # Number of initial random trials before CMA-ES starts
-    population_size=20,     # Default = 4 + floor(3 * log(n_dim)), roughly 19 for 45 dims
+    sigma0=0.3,
+    n_startup_trials=300,
+    popsize=20,
 )
 
 if args.init_db:
