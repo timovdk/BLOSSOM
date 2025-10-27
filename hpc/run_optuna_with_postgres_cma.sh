@@ -17,6 +17,36 @@ LOGFILE="$HOME/pgsql/postgres.log"
 export PGHOST=127.0.0.1
 export PGPORT=5433  # Use a non-standard port if needed
 
+# Clean exit on interrupt
+function cleanup() {
+    echo "Stopping PostgreSQL..."
+    pg_ctl -D $PG_DATA -m fast stop
+    exit 0
+}
+trap cleanup SIGINT SIGTERM
+
+# Start PostgreSQL server
+echo "Starting PostgreSQL..."
+pg_ctl -D $PG_DATA -l $LOGFILE -o "-p $PGPORT" start
+
+# Wait to ensure the server has started
+sleep 5
+
+# Check if PostgreSQL is ready
+pg_isready -p $PGPORT
+if [ $? -ne 0 ]; then
+    echo "PostgreSQL did not start successfully!"
+    exit 1
+fi
+
+# Create the DB if it doesn't exist
+if ! psql -p $PGPORT -lqt | cut -d \| -f 1 | grep -qw optuna_study; then
+    createdb -p $PGPORT optuna_study
+    echo "Created the optuna_study database."
+else
+    echo "Database optuna_study already exists."
+fi
+
 cp -r $HOME/BLOSSOM/blossom "$TMPDIR"
 cp -r $HOME/BLOSSOM/hpc "$TMPDIR/blossom"
 
@@ -39,3 +69,5 @@ srun --ntasks=47 --cpus-per-task=1 \
      python ./hpc/run_optuna_cma.py --n_trials 5000 --n_jobs 1 &
 
 wait
+
+cleanup
