@@ -11,8 +11,21 @@ import optuna
 import numpy as np
 
 SEEDS = [42]
-METRIC = "final_outcome" # "auc" or "final_outcome"
+METRIC = "trapezoidal_auc" # "auc" or "final_outcome" or "trapezoidal_auc"
 
+
+def trapezoidal_auc(logs, max_tick=1000, p=2.5):
+    """Trapezoidal diversity-weighted AUC, robust to early stop / irregular ticks."""
+    if len(logs) == 0:
+        return 0.0
+    ticks = np.array([log["tick"] for log in logs], dtype=float)
+    survivors = np.array([log["survivors"] for log in logs], dtype=float)
+    ticks = np.clip(ticks, 0, max_tick)
+    survivors = np.clip(survivors, 0, 9)
+    t_norm = ticks / float(max_tick)
+    integrand = (survivors / 9.0) ** p
+    auc = np.trapezoid(integrand, t_norm)
+    return float(np.clip(auc, 0.0, 1.0))
 
 def load_base_config(filename):
     base_params = {}
@@ -155,6 +168,9 @@ def objective(
             final_log = logs[-1]
             metric_values.append((final_log["tick"] / 1000) * (final_log["survivors"] / 9))
 
+        elif metric == "trapezoidal_auc":
+            metric_values.append(trapezoidal_auc(logs))
+
     if len(metric_values) == 0:
         return 1e-6
 
@@ -174,6 +190,7 @@ storage_url = "postgresql://localhost:5433/optuna_study"
 tpe_sampler = optuna.samplers.TPESampler(
    n_startup_trials=300,
    n_ei_candidates=64,
+   constant_liar=True,
 )
 
 if args.init_db:

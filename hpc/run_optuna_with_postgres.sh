@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=48
 #SBATCH --partition=genoa
-#SBATCH --time=72:00:00
+#SBATCH --time=48:00:00
 
 # Load modules (modify these as needed)
 module load 2025 PostgreSQL/17.5-GCCcore-14.2.0 Python/3.13.1-GCCcore-14.2.0
